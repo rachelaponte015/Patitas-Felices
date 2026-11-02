@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patitas Felices · Prototipo navegable</title>
+<script>try{var t=localStorage.getItem('pf-theme');document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS · Paleta A (Vibrante)
+   ========================================================= */
+:root{
+  --primary:#4A5BFF; --primary-dark:#3341D6; --primary-text:#3341D6; --on-primary:#FFFFFF;
+  --accent:#FFD43B; --on-accent:#1B1E3C; --mint:#9EFFB9; --on-mint:#12351F; --success-text:#0E6B3A;
+  --danger:#E0001B; --danger-text:#B80016; --danger-soft:#FFF0F0; --on-danger:#FFFFFF;
+  --muted:#5B6090; --text:#1B1E3C; --bg:#F7F8FF; --surface:#FFFFFF; --soft:#ECEEFF;
+  --border:#DADDF5; --border-strong:#797EAB; --focus:#1B1E3C; --footer:#1B1E3C; --footer-text:#FFFFFF;
+  --disabled-bg:#E6E7F0; --disabled-ink:#6E7290; --wa:#0B7A6E; --wa-dark:#08605A;
+  --primary-hover:#3341D6; --danger-hover:#B80016; --warn-text:#8A5A00; --toast-bg:#1B1E3C; --shadow:0 18px 40px rgba(27,30,60,.12);
+  --fh:'Poppins','Segoe UI',Arial,sans-serif; --fb:'Nunito Sans','Segoe UI',Arial,sans-serif;
+  --r:18px; color-scheme:light;
+}
+/* Modo oscuro: sigue la preferencia del sistema o el botón de tema */
+:root[data-theme=dark]{
+  --primary:#4A5BFF; --primary-hover:#3B4BEB; --primary-text:#A3ACFF; --on-primary:#FFFFFF;
+  --accent:#FFD43B; --on-accent:#1B1E3C; --mint:#9EFFB9; --on-mint:#12351F; --success-text:#7BE6A0;
+  --danger:#E0001B; --danger-hover:#B80016; --danger-text:#FF9A9E; --danger-soft:#3A1622; --on-danger:#FFFFFF;
+  --muted:#B3B7DA; --text:#EEF0FF; --bg:#0F1126; --surface:#181B36; --soft:#252A55;
+  --border:#2F3462; --border-strong:#8A8FC4; --focus:#FFD43B; --footer:#0A0B1C; --footer-text:#EEF0FF;
+  --disabled-bg:#2A2E52; --disabled-ink:#9094BD; --warn-text:#FFD43B; --toast-bg:#252A55; --shadow:0 18px 40px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+:root[data-theme=dark] .map,:root[data-theme=dark] .photo{filter:brightness(.9)}
+*{box-sizing:border-box}
+html{scroll-padding-top:140px}
+body{margin:0;background:var(--bg);color:var(--text);font:400 18px/1.55 var(--fb);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--fh);line-height:1.2;margin:0;color:var(--text)}
+h1{font-size:32px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:26px;font-weight:700}
+h3{font-size:20px;font-weight:600}
+p{margin:0}
+a{color:var(--primary-text)}
+ul{margin:0;padding:0;list-style:none}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+.wrap{padding:0 20px;max-width:1240px;margin:0 auto}
+.ico{width:22px;height:22px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.paw{fill:currentColor;stroke:none}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.d-only{display:none!important}
+.skip{position:absolute;left:12px;top:-60px;z-index:200;background:var(--text);color:#fff;padding:10px 16px;border-radius:10px;font-weight:700}
+.skip:focus{top:12px}
+
+/* ---------- Botones ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 22px;border-radius:999px;border:2px solid transparent;font:600 17px/1.2 var(--fh);text-decoration:none;cursor:pointer;transition:background .25s,transform .25s,box-shadow .3s;white-space:nowrap;background:none}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:hover{background:var(--primary-hover);transform:translateY(-2px);box-shadow:0 16px 30px -10px rgba(74,91,255,.65)}
+.btn-secondary{background:var(--surface);color:var(--primary-text);border-color:var(--primary)}
+.btn-secondary:hover{background:var(--soft);transform:translateY(-2px);box-shadow:0 14px 28px -12px rgba(74,91,255,.4)}
+.btn-danger{background:var(--danger);color:var(--on-danger)}
+.btn-danger:hover{background:var(--danger-hover);transform:translateY(-2px);box-shadow:0 16px 30px -10px rgba(224,0,27,.6)}
+.btn-wa{background:var(--wa);color:#fff}
+.btn-wa:hover{background:var(--wa-dark);transform:translateY(-2px);box-shadow:0 16px 30px -10px rgba(11,122,110,.6)}
+/* Efecto de urgencia: anillo que pulsa e icono que late */
+.pulse{animation:ring 2s cubic-bezier(.4,0,.6,1) infinite}
+.pulse-w{animation:ringW 2s cubic-bezier(.4,0,.6,1) infinite}
+.pulse .ico,.pulse-w .ico{animation:beat 1.4s ease-in-out infinite}
+@keyframes ring{0%,100%{box-shadow:0 0 0 0 rgba(224,0,27,.5)}50%{box-shadow:0 0 0 12px rgba(224,0,27,0)}}
+@keyframes ringW{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}50%{box-shadow:0 0 0 10px rgba(255,255,255,0)}}
+@keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.22)}28%{transform:scale(1)}42%{transform:scale(1.15)}70%{transform:scale(1)}}
+.pulse:hover,.pulse-w:hover{animation-play-state:paused}
+.btn-ghost{color:var(--primary-text);text-decoration:underline;text-underline-offset:3px;padding-inline:10px}
+.btn:active{transform:translateY(2px) scale(.99);box-shadow:inset 0 3px 0 rgba(0,0,0,.18)}
+.btn[disabled]{background:var(--disabled-bg);color:var(--disabled-ink);border-color:transparent;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-lg{min-height:56px;padding:14px 26px;font-size:18px}
+.btn-sm{min-height:44px;padding:8px 14px;font-size:15.5px}
+.btn-block{width:100%;white-space:normal;text-align:center}
+.btn .spin{width:20px;height:20px;border-radius:50%;border:3px solid rgba(255,255,255,.45);border-top-color:#fff;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- Formularios ---------- */
+.field{display:block;margin-bottom:20px}
+.lab{display:block;font:700 16px var(--fb);margin-bottom:6px;color:var(--text)}
+.lab small{font-weight:400;color:var(--muted)}
+.input{display:block;width:100%;min-height:52px;padding:12px 14px;border:2px solid var(--border-strong);border-radius:12px;background:var(--surface);font:400 18px var(--fb);color:var(--text);transition:border-color .15s,background .15s}
+.input::placeholder{color:var(--muted);opacity:1}
+.input:focus{outline:3px solid var(--focus);outline-offset:2px;border-color:var(--primary)}
+textarea.input{min-height:96px;resize:vertical}
+select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235B6090' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:20px;padding-right:44px;cursor:pointer}
+.phone-wrap{display:flex;align-items:stretch}
+.phone-wrap .pre{display:flex;align-items:center;padding:0 14px;border:2px solid var(--border-strong);border-right:0;border-radius:12px 0 0 12px;background:var(--soft);font-weight:800}
+.phone-wrap .input{border-radius:0 12px 12px 0;min-width:0}
+.help{display:block;font-size:15px;color:var(--muted);margin-top:6px}
+.err{display:none;gap:6px;align-items:center;font-size:15px;font-weight:700;color:var(--danger-text);margin-top:6px}
+.err .ico{width:18px;height:18px}
+.has-err .err{display:flex;animation:shake .3s}
+.has-err .input,.has-err .phone-wrap .pre{border-color:var(--danger-text)}
+.has-err .input{background:var(--danger-soft)}
+.is-ok .input{border-color:var(--success-text)}
+.okm{display:none;gap:6px;align-items:center;font-size:15px;font-weight:700;color:var(--success-text);margin-top:6px}
+.okm .ico{width:18px;height:18px}
+.is-ok .okm{display:flex}
+@keyframes shake{20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.form-alert{display:none;gap:10px;align-items:center;background:var(--danger-soft);border:2px solid var(--danger-text);color:var(--text);border-radius:12px;padding:12px 14px;margin-bottom:20px;font-weight:700;font-size:16px}
+.form-alert.show{display:flex}
+.form-alert .ico{color:var(--danger-text)}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:16px;margin-bottom:12px;cursor:pointer;position:relative}
+.check input{position:absolute;opacity:0;width:26px;height:26px;margin:0;cursor:pointer}
+.check .box{flex:0 0 26px;height:26px;border-radius:7px;border:2px solid var(--border-strong);background:var(--surface);display:grid;place-items:center;color:var(--on-primary);transition:background .15s}
+.check .box .ico{width:16px;height:16px;stroke-width:3;opacity:0;transform:scale(.4);transition:.15s}
+.check input:checked+.box{background:var(--primary);border-color:var(--primary)}
+.check input:checked+.box .ico{opacity:1;transform:none}
+.check input:focus-visible+.box{outline:3px solid var(--focus);outline-offset:2px}
+.has-err .check .box{border-color:var(--danger-text)}
+fieldset{border:0;padding:0;margin:0 0 26px;min-width:0}
+legend{font:600 19px var(--fh);margin-bottom:12px;padding:0;color:var(--text)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.opts{display:grid;gap:10px}
+.opt{position:relative;display:flex;align-items:center;gap:14px;min-height:68px;padding:12px 16px;border:2px solid var(--border);border-radius:14px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.opt:hover{border-color:var(--border-strong)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .oi{width:44px;height:44px;border-radius:12px;background:var(--soft);color:var(--primary-text);display:grid;place-items:center;flex:0 0 auto}
+.opt b{display:block;font:600 17px var(--fh)}
+.opt span{font-size:15px;color:var(--muted)}
+.opt .price{margin-left:auto;font:700 16px var(--fh);color:var(--text);text-align:right;white-space:nowrap}
+.opt .price small{display:block;font-size:12px;color:var(--muted)}
+.opt .radio{width:24px;height:24px;border-radius:50%;border:2px solid var(--border-strong);flex:0 0 auto;display:grid;place-items:center;background:var(--surface)}
+.opt:has(input:checked){border-color:var(--primary);background:var(--soft);box-shadow:0 0 0 1px var(--primary)}
+.opt:has(input:checked) .radio{border-color:var(--primary)}
+.opt:has(input:checked) .radio::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--primary);animation:pop .2s}
+.opt:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:2px}
+.has-err .opt{border-color:var(--danger-text)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chipo{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:10px 18px;border:2px solid var(--border-strong);border-radius:999px;font:600 16px var(--fh);background:var(--surface);color:var(--text);cursor:pointer;transition:.15s}
+.chipo input{position:absolute;opacity:0;pointer-events:none}
+.chipo .ico{display:none;width:18px;height:18px;stroke-width:3}
+.chipo:has(input:checked){background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.chipo:has(input:checked) .ico{display:inline-block}
+.chipo:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:2px}
+.has-err .chipo{border-color:var(--danger-text)}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+/* ---------- Estructura global ---------- */
+#top{display:contents}
+.sticky{position:sticky;top:0;z-index:30}
+.tbar{background:var(--danger);color:var(--on-danger);font-size:15.5px}
+.tbar-in{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px}
+.tbar-txt{display:flex;align-items:center;gap:8px}
+.tbar .ico{width:19px;height:19px}
+.tbar-call{display:inline-flex;align-items:center;gap:6px;color:var(--on-danger);font-weight:800;background:rgba(0,0,0,.2);padding:6px 16px;border-radius:999px;border:0;cursor:pointer;min-height:38px;font-size:15.5px;line-height:1.2}
+.tbar-call .ico{width:18px;height:18px}
+.tbar-call:hover{background:rgba(0,0,0,.32);transform:translateY(-1px)}
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);transition:background .35s,box-shadow .35s,border-color .35s}
+/* Barra de navegación fija: al bajar se vuelve translúcida con sombra */
+.scrolled .hdr{background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 10px 30px -14px rgba(27,30,60,.35)}
+/* En Inicio empieza transparente sobre la foto del hero */
+.has-hero main{margin-top:-73px}
+.has-hero .hero-in{padding-top:calc(44px + 73px)}
+.has-hero:not(.scrolled) .hdr{background:transparent;border-color:rgba(255,255,255,.14)}
+.has-hero:not(.scrolled) .hdr .logo,.has-hero:not(.scrolled) .hdr .nav a{color:#fff}
+.has-hero:not(.scrolled) .hdr .logo-txt span{color:#C9CCEB}
+.has-hero:not(.scrolled) .hdr .logo-mark::after{border-color:#1B1E3C}
+.has-hero:not(.scrolled) .hdr .nav a:hover{background:rgba(255,255,255,.1)}
+.has-hero:not(.scrolled) .hdr .nav a[aria-current=page]{background:rgba(255,255,255,.14);color:#fff}
+.has-hero:not(.scrolled) .hdr .theme-btn,.has-hero:not(.scrolled) .hdr .burger{background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.has-hero:not(.scrolled) .hdr .theme-btn:hover{background:rgba(255,255,255,.1)}
+.logo,.nav a,.theme-btn,.burger,.logo-txt span{transition:color .35s,background .35s,border-color .35s}
+.hdr-in{display:flex;align-items:center;gap:8px;min-height:72px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);margin-right:auto}
+.logo-mark{width:44px;height:44px;border-radius:14px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;position:relative;transition:transform .2s}
+.logo:hover .logo-mark{transform:rotate(-8deg)}
+.logo-mark .paw{width:26px;height:26px}
+.logo-mark::after{content:"";position:absolute;right:-3px;top:-3px;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+.logo-txt b{display:block;font:700 18px/1.05 var(--fh);white-space:nowrap}
+.logo-txt span{display:none;font-size:12.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+.ftr .logo-txt span{display:block;color:var(--footer-text);opacity:.85}
+.nav{display:none}
+.nav a{font:600 16.5px var(--fh);color:var(--text);text-decoration:none;padding:10px 14px;border-radius:10px;min-height:48px;display:inline-flex;align-items:center;transition:background .15s}
+.nav a:hover{background:var(--soft);color:var(--primary-text)}
+.nav a[aria-current=page]{color:var(--primary-text);background:var(--soft)}
+.hdr-cta .ico{display:none}
+.burger{width:48px;height:48px;border-radius:12px;border:2px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--text);cursor:pointer}
+.bk-exit{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:16px;min-height:48px;background:none;border:0;color:var(--primary-text);cursor:pointer;padding:0 10px;text-decoration:underline;text-underline-offset:3px}
+
+.resume{background:var(--accent);color:var(--on-accent)}
+.resume-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding-top:12px;padding-bottom:12px;font-size:16px}
+.resume-in .txt{flex:1 1 240px;display:flex;gap:10px;align-items:center}
+.resume .btn-ghost{color:var(--on-accent)}
+.resume .btn-primary{background:#1B1E3C;color:#fff}
+.theme-btn{width:48px;height:48px;border-radius:12px;border:2px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--text);cursor:pointer;flex:0 0 auto}
+.theme-btn:hover{background:var(--soft)}
+.theme-btn .sun{display:none}
+:root[data-theme=dark] .theme-btn .sun{display:block}
+:root[data-theme=dark] .theme-btn .moon{display:none}
+.hdr .theme-btn.hdr-theme{display:none}
+.drawer .theme-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;border:1px solid var(--border);border-radius:12px;font-weight:700}
+
+.fab{position:fixed;right:18px;bottom:18px;z-index:25;display:inline-flex;align-items:center;gap:10px;height:60px;min-width:60px;justify-content:center;padding:0 18px;border-radius:999px;background:var(--wa);color:#fff;border:0;cursor:pointer;font:600 16px var(--fh);box-shadow:0 8px 24px rgba(0,0,0,.22);transition:transform .2s}
+.fab:hover{transform:translateY(-3px)}
+.fab .ico{width:26px;height:26px}
+.fab .lbl{display:none}
+
+.ftr{background:var(--footer);color:var(--footer-text);margin-top:64px;padding:40px 0 100px;font-size:16px}
+.ftr a{color:var(--footer-text)}
+.ftr .logo{color:var(--footer-text)}
+.ftr-grid{display:grid;gap:26px}
+.ftr h4{font:600 16px var(--fh);color:var(--footer-text);margin-bottom:10px}
+.ftr li{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
+.ftr .ico{width:20px;height:20px;margin-top:3px}
+.ftr-bottom{border-top:1px solid rgba(255,255,255,.25);margin-top:26px;padding-top:16px;font-size:14.5px}
+
+/* páginas */
+main{display:block;min-height:60vh}
+main.enter{animation:fadeUp .3s ease-out}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.sec{padding:44px 0 0}
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:22px}
+.kicker{display:block;font:600 13.5px var(--fh);letter-spacing:.12em;text-transform:uppercase;color:var(--primary-text);margin-bottom:8px}
+.sec-head a{white-space:nowrap}
+.lead{font-size:19px;color:var(--muted);margin-top:12px}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font:600 14.5px var(--fh);color:var(--primary-text);background:var(--soft);padding:6px 12px;border-radius:999px;margin-bottom:14px}
+.eyebrow .ico{width:17px;height:17px}
+.crumb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:15px;color:var(--muted);padding:18px 0 10px}
+.crumb .ico{width:16px;height:16px}
+h1:focus{outline:none}
+
+.hero{position:relative;overflow:hidden;background:#12142B;color:#fff;isolation:isolate}
+.hero-bg{position:absolute;inset:0;z-index:-2}
+.hero-bg .photo{object-position:72% 40%;background:#12142B}
+.hero-ov{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(15,17,38,.78) 0%,rgba(15,17,38,.9) 60%,rgba(15,17,38,.96) 100%)}
+.hero .lead{color:#D6D9F2}
+.hero h1{color:#fff}
+.hero h1 em{font-style:normal;color:#FFD43B}
+.hero-badge{display:inline-flex;gap:10px;align-items:center;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);font:600 14px var(--fh);color:#fff;margin-bottom:22px;backdrop-filter:blur(6px)}
+.hero-badge i{width:9px;height:9px;border-radius:50%;background:#9EFFB9;animation:dot 2s infinite}
+@keyframes dot{0%,100%{box-shadow:0 0 0 0 rgba(158,255,185,.7)}50%{box-shadow:0 0 0 7px rgba(158,255,185,0)}}
+.hero-in{padding-top:44px;padding-bottom:52px}
+.hero h1{font-weight:600;letter-spacing:-.02em}
+.cta-row{display:flex;flex-direction:column;gap:12px;margin-top:26px}
+.photo{display:block;width:100%;height:100%;object-fit:cover;background:var(--soft)}
+.det-photo{border-radius:18px;overflow:hidden;aspect-ratio:16/9;margin-top:22px}
+.vet-photo{width:112px;height:112px;border-radius:50%;overflow:hidden;border:4px solid var(--soft)}
+.about{display:grid;gap:24px;align-items:center}
+.about-photo{border-radius:20px;overflow:hidden;aspect-ratio:4/3}
+
+.grid{display:grid;gap:16px}
+.svc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:10px;transition:transform .4s cubic-bezier(.4,0,.2,1),box-shadow .4s,border-color .4s;color:inherit}
+a.svc{text-decoration:none}
+/* Efecto de tarjetas: borde de color y sombra azul al pasar el cursor */
+.svc:hover,.vet:hover,.quote:hover{border-color:rgba(74,91,255,.6);box-shadow:0 0 0 1px rgba(74,91,255,.35),0 26px 50px -16px rgba(74,91,255,.5)}
+a.svc:hover,.svc.lift:hover,.vet:hover{transform:translateY(-4px)}
+.svc .si,.value .vi{transition:background .4s,color .4s,transform .4s}
+.svc:hover .si{background:var(--primary);color:#fff;transform:scale(1.06)}
+.svc.urgent:hover{border-color:var(--danger);box-shadow:0 0 0 1px rgba(224,0,27,.4),0 26px 50px -16px rgba(224,0,27,.5)}
+.svc.urgent:hover .si{background:var(--danger)}
+.value:hover .vi{background:var(--primary);color:#fff}
+.svc .si{width:52px;height:52px;border-radius:14px;background:var(--soft);color:var(--primary-text);display:grid;place-items:center}
+.svc .si .ico{width:26px;height:26px}
+.svc p{font-size:16.5px;color:var(--muted)}
+.svc .pr{font:700 19px var(--fh);color:var(--text)}
+.svc .pr small{font:600 14px var(--fb);color:var(--muted);display:block}
+.svc .meta{display:flex;gap:6px;align-items:center;font-size:15px;color:var(--muted)}
+.svc .meta .ico{width:18px;height:18px}
+.svc .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;padding-top:6px}
+.svc.urgent{border:2px solid var(--danger);background:var(--danger-soft)}
+.svc.urgent .si{background:var(--danger);color:var(--on-danger)}
+.feat{flex-direction:row;align-items:center;gap:14px;padding:16px}
+.feat .fx{flex:1}
+.feat h3{font-size:18px}
+.feat .pr{font-size:16px}
+.feat .go{color:var(--primary-text)}
+
+.band{border-radius:20px;padding:24px;display:grid;gap:16px;align-items:center}
+.band-guide{background:var(--soft);color:var(--text);border:1px solid var(--border)}
+.band-guide p{color:var(--muted)}
+.band-guide .bi{width:60px;height:60px;border-radius:16px;background:var(--surface);color:var(--primary-text);display:grid;place-items:center}
+.band-guide .bi .ico{width:30px;height:30px}
+
+.quote{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin:0;transition:box-shadow .4s,border-color .4s}
+.stars{display:flex;gap:2px;color:#B7791F;margin-bottom:8px}
+.stars .ico{width:19px;height:19px;fill:currentColor}
+.quote p{font-size:17px}
+.quote footer{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:15px;color:var(--muted)}
+.quote footer b{color:var(--text);display:block}
+.avatar{border-radius:50%;display:grid;place-items:center;font:700 16px var(--fh);flex:0 0 auto;background:var(--soft);color:var(--primary-text)}
+.av-s{width:44px;height:44px}
+.av-l{width:96px;height:96px;font-size:30px}
+.av2{background:var(--mint);color:var(--on-mint)}.av3{background:var(--accent);color:var(--on-accent)}.av4{background:var(--danger-soft);color:var(--danger-text)}
+
+.loc{display:grid;gap:18px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px}
+.map{border-radius:16px;overflow:hidden;min-height:220px;background:#E9EDE4}
+.map svg{width:100%;height:100%;display:block}
+.map .pin{animation:drop .9s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes drop{from{transform:translateY(-40px);opacity:0}to{transform:none;opacity:1}}
+.info-list li{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.info-list .ii{width:44px;height:44px;border-radius:12px;background:var(--soft);color:var(--primary-text);display:grid;place-items:center;flex:0 0 auto}
+.info-list b{display:block;font-family:var(--fh);font-weight:600}
+.info-list span{color:var(--muted);font-size:16.5px}
+.btn-stack{display:grid;gap:10px}
+
+.det{display:grid;gap:24px;grid-template-areas:"head" "aside" "body"}
+.det-head{grid-area:head}.det-aside{grid-area:aside}.det-body{grid-area:body}
+.price-card{background:var(--surface);border:2px solid var(--primary);border-radius:20px;padding:22px;display:grid;gap:12px}
+.price-card .big{font:700 34px var(--fh);color:var(--text);line-height:1.15}
+.price-card .big small{font:600 16px var(--fb);color:var(--muted)}
+.checklist li{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+.checklist .ico{color:var(--success-text);stroke-width:3;margin-top:3px}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.tbl th,.tbl td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl th{background:var(--soft);font:600 15px var(--fh)}
+.tbl tr:last-child td{border-bottom:0}
+.faq{border:1px solid var(--border);border-radius:14px;background:var(--surface);margin-bottom:10px}
+.faq summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;min-height:56px;font:600 17px var(--fh);cursor:pointer}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .ico{transition:transform .2s}
+.faq[open] summary .ico{transform:rotate(180deg)}
+.faq p{padding:0 16px 16px;color:var(--muted);font-size:16.5px}
+.note{display:flex;gap:10px;align-items:flex-start;font-size:15.5px;color:var(--muted);background:var(--soft);border-radius:12px;padding:12px 14px}
+.note .ico{color:var(--primary-text);margin-top:2px}
+.sec-title{font-size:24px;margin:28px 0 12px}
+
+.vet{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;display:grid;gap:12px;justify-items:start;align-content:start;transition:transform .4s cubic-bezier(.4,0,.2,1),box-shadow .4s,border-color .4s}
+.tag{display:inline-flex;align-items:center;gap:6px;font:600 14px var(--fh);background:var(--soft);color:var(--primary-text);padding:5px 12px;border-radius:999px}
+.vet p{font-size:16.5px;color:var(--muted)}
+.vet .meta{display:flex;gap:6px;align-items:center;font-size:15px;color:var(--muted)}
+.vet .meta .ico{width:18px;height:18px}
+.value{display:flex;gap:14px;align-items:flex-start}
+.value .vi{width:52px;height:52px;border-radius:14px;background:var(--mint);color:var(--on-mint);display:grid;place-items:center;flex:0 0 auto}
+
+/* agendamiento */
+.book{display:grid;gap:24px;padding-top:22px;padding-bottom:40px}
+.stepper{margin-bottom:22px}
+.st-txt{display:flex;justify-content:space-between;font:600 15.5px var(--fh);margin-bottom:8px}
+.st-txt span{color:var(--muted);font-weight:500}
+.bars{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.bars i{height:8px;border-radius:99px;background:var(--border);overflow:hidden;position:relative}
+.bars i::after{content:"";position:absolute;inset:0;background:var(--primary);transform:scaleX(0);transform-origin:left;transition:transform .5s ease}
+.bars i.on::after{transform:none}
+.st-labels{display:none}
+.alert{display:flex;flex-wrap:wrap;gap:12px;align-items:center;border-radius:14px;padding:14px 16px;font-size:16px;margin-bottom:24px}
+.alert-danger{background:var(--danger-soft);border:2px solid var(--danger)}
+.alert-danger>.ico{color:var(--danger-text)}
+.alert .ax{flex:1 1 180px}
+.actions{display:flex;flex-direction:column-reverse;gap:10px;margin-top:8px}
+.autosave{display:flex;gap:8px;align-items:center;justify-content:center;font-size:15px;color:var(--muted);margin-top:14px;min-height:24px}
+.autosave .ico{width:18px;height:18px;color:var(--success-text)}
+.autosave.flash{animation:flash .6s}
+@keyframes flash{50%{color:var(--success-text)}}
+.summary{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;align-self:start}
+.summary h2{font-size:20px;margin-bottom:12px}
+.sum-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);font-size:16px}
+.sum-row:last-of-type{border-bottom:0}
+.sum-row .ico{color:var(--primary-text);margin-top:2px}
+.sum-row b{display:block;font-family:var(--fh);font-weight:600;font-size:14px;color:var(--muted)}
+.sum-row .empty{color:var(--muted);font-style:italic}
+.sum-row .edit{margin-left:auto;font-size:14.5px;font-weight:700;white-space:nowrap;background:none;border:0;color:var(--primary-text);text-decoration:underline;cursor:pointer;min-height:32px}
+.sum-total{display:flex;justify-content:space-between;align-items:baseline;background:var(--soft);border-radius:12px;padding:12px 14px;margin-top:10px;font-weight:700}
+.sum-total strong{font:700 22px var(--fh)}
+.sum-mini{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:22px;font-size:15.5px}
+.sum-mini b{font-family:var(--fh)}
+
+.cal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cal-head b{font:600 18px var(--fh)}
+.cal-nav{width:44px;height:44px;border-radius:12px;border:2px solid var(--border);display:grid;place-items:center;color:var(--text);background:var(--surface);cursor:pointer}
+.cal-nav[disabled]{opacity:.35;cursor:not-allowed}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dow{font:600 13px var(--fh);color:var(--muted);padding:6px 0}
+.day{height:46px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 16px var(--fh);color:var(--text);border:2px solid transparent;background:none;cursor:pointer;padding:0;transition:background .15s}
+.day:hover:not([disabled]){background:var(--soft)}
+.day.av::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--success-text);margin-top:2px}
+.day[disabled]{color:var(--muted);text-decoration:line-through;font-weight:500;opacity:.7;cursor:not-allowed}
+.day.today{border-color:var(--border-strong)}
+.day[aria-pressed=true]{background:var(--primary);color:var(--on-primary);animation:pop .25s}
+.day[aria-pressed=true]::after{background:var(--on-primary)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:14.5px;color:var(--muted);margin-top:12px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.slots h3{font-size:17px;margin:16px 0 10px}
+.slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{min-height:48px;border-radius:12px;border:2px solid var(--border-strong);display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 16px var(--fh);background:var(--surface);color:var(--text);line-height:1.1;cursor:pointer;transition:background .15s}
+.slot:hover:not([disabled]){background:var(--soft)}
+.slot small{font:600 12px var(--fb);color:var(--muted)}
+.slot small.last{color:var(--warn-text);font-weight:800}
+.slot[aria-pressed=true] small{color:var(--on-primary)}
+.slot[disabled]{background:var(--disabled-bg);border-color:transparent;color:var(--disabled-ink);text-decoration:line-through;cursor:not-allowed}
+.slot[aria-pressed=true]{background:var(--primary);border-color:var(--primary);color:var(--on-primary);animation:pop .25s}
+.slot.suggest{border-color:var(--success-text);box-shadow:0 0 0 2px var(--mint)}
+.no-slots{background:var(--soft);border-radius:14px;padding:18px;color:var(--muted);font-size:16px}
+.live{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--success-text);font-weight:700}
+.live i{width:9px;height:9px;border-radius:50%;background:var(--success-text);box-shadow:0 0 0 4px var(--mint);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px transparent}}
+.has-err.cal,.has-err .cal{border-color:var(--danger-text)}
+
+/* confirmación */
+.conf{max-width:760px;margin:0 auto;text-align:center;padding-top:34px}
+.conf-ic{width:96px;height:96px;border-radius:50%;background:var(--mint);color:var(--on-mint);display:grid;place-items:center;margin:0 auto 18px;animation:pop .5s ease-out}
+.conf-ic svg{width:52px;height:52px}
+.conf-ic path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw .5s .35s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.ticket{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:20px;margin-top:24px;overflow:hidden}
+.ticket-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 20px;background:var(--soft)}
+.ticket-top b{font:700 18px var(--fh)}
+.ticket-top span{font:600 14px var(--fh);color:var(--muted);white-space:nowrap}
+.ticket .rows{padding:6px 20px 14px}
+.conf-acts{display:grid;gap:10px;margin-top:20px}
+.tips{text-align:left;margin-top:24px}
+.tips h2{font-size:19px;margin-bottom:10px}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px}
+
+.cgrid{display:grid;gap:20px}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 6px}
+.qa .btn{padding-inline:10px;font-size:16px;gap:8px}
+.hours{width:100%;border-collapse:collapse;font-size:16.5px}
+.hours td{padding:9px 0;border-bottom:1px solid var(--border)}
+.hours td:last-child{text-align:right;font-weight:700}
+.hours tr.today td{color:var(--primary-text);font-weight:800}
+.emer{background:var(--danger);color:var(--on-danger);border-radius:20px;padding:22px;display:grid;gap:12px}
+.emer h2,.emer p{color:var(--on-danger)}
+.emer .btn{background:var(--surface);color:var(--danger-text)}
+
+.e404{text-align:center;padding:50px 0 10px;max-width:720px;margin:0 auto}
+.e404 .num{display:flex;align-items:center;justify-content:center;gap:10px;font:700 110px/1 var(--fh);color:var(--primary-text)}
+.e404 .num i{width:104px;height:104px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;animation:sniff 2.4s ease-in-out infinite}
+.e404 .num .paw{width:60px;height:60px}
+@keyframes sniff{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+.e404 .acts{display:grid;gap:10px;margin:26px auto 0;max-width:420px}
+.e404 .links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;margin-top:22px;font-weight:700}
+
+/* diálogos */
+dialog{border:0;padding:0;border-radius:22px;max-width:min(480px,calc(100vw - 32px));width:100%;color:var(--text);background:var(--surface);box-shadow:0 30px 80px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(27,30,60,.55)}
+dialog[open]{animation:dlg .25s ease-out}
+@keyframes dlg{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+.dlg-in{padding:26px;display:grid;gap:14px}
+.dlg-ic{width:60px;height:60px;border-radius:18px;display:grid;place-items:center}
+.dlg-ic .ico{width:30px;height:30px}
+.dlg-ic.red{background:var(--danger);color:var(--on-danger)}
+.dlg-ic.blue{background:var(--soft);color:var(--primary-text)}
+.dlg-ic.yel{background:var(--accent);color:var(--on-accent)}
+.dlg-in h2{font-size:24px}
+.dlg-in p{color:var(--muted);font-size:17px}
+.dlg-acts{display:grid;gap:10px;margin-top:4px}
+.dlg-x{position:absolute;right:12px;top:12px;width:44px;height:44px;border-radius:12px;border:0;background:var(--bg);display:grid;place-items:center;cursor:pointer;color:var(--text)}
+.big-phone{font:700 30px var(--fh);color:var(--danger-text);text-align:center;padding:10px;background:var(--danger-soft);border-radius:14px}
+.drawer{margin:0 0 0 auto;height:100dvh;max-height:100dvh;border-radius:22px 0 0 22px;max-width:340px}
+.drawer[open]{animation:slideIn .25s ease-out}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
+.drawer nav a{display:flex;align-items:center;min-height:56px;padding:0 14px;border-radius:12px;font:600 18px var(--fh);color:var(--text);text-decoration:none}
+.drawer nav a[aria-current=page]{background:var(--soft);color:var(--primary-text)}
+
+.toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,30px);background:var(--toast-bg);color:#fff;border:1px solid var(--border);padding:14px 20px;border-radius:14px;font-weight:700;font-size:16px;z-index:300;opacity:0;pointer-events:none;transition:.3s;max-width:calc(100vw - 32px);display:flex;gap:10px;align-items:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .ico{color:var(--mint)}
+
+
+/* ---------- Escritorio ---------- */
+@media (min-width:900px){
+  .wrap{padding:0 56px}
+  .d-only{display:revert!important}
+  .m-only{display:none!important}
+  h1{font-size:48px} h2{font-size:32px} h3{font-size:22px}
+  .hdr .theme-btn.hdr-theme{display:grid}
+  .about{grid-template-columns:1fr 1fr;gap:56px}
+  .lead{font-size:21px}
+  .nav{display:flex;gap:4px;margin-left:auto;margin-right:12px}
+  .burger{display:none}
+  .logo{margin-right:0}
+  .logo-txt span{display:block}
+  .hdr-cta .ico{display:inline-block}
+  .hdr-in{min-height:84px;gap:16px}
+  .tbar-in{min-height:52px}
+  .hero-in{min-height:600px;display:flex;flex-direction:column;justify-content:center;padding-top:72px;padding-bottom:80px}
+  .hero-txt{max-width:640px}
+  .hero-ov{background:linear-gradient(90deg,rgba(15,17,38,.96) 0%,rgba(15,17,38,.88) 42%,rgba(15,17,38,.35) 100%)}
+  .hero h1{font-size:56px}
+  .has-hero main{margin-top:-85px}
+  .has-hero .hero-in{padding-top:calc(72px + 85px);min-height:685px}
+  .cta-row{flex-direction:row}
+  .sec{padding-top:72px}
+  .g-feat{grid-template-columns:repeat(4,1fr)}
+  .feat{flex-direction:column;align-items:flex-start;padding:22px}
+  .feat .go{display:none}
+  .g-svc,.g-3{grid-template-columns:repeat(3,1fr)}
+  .g-4{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .band{grid-template-columns:auto 1fr auto;padding:30px 36px}
+  .loc{grid-template-columns:1.3fr 1fr;padding:22px;gap:28px}
+  .map{min-height:380px}
+  .ftr-grid{grid-template-columns:1.4fr 1fr 1fr 1fr}
+  .ftr{padding-bottom:40px}
+  .det{grid-template-columns:1fr 380px;grid-template-areas:"head aside" "body aside";column-gap:56px}
+  .det-aside .price-card{position:sticky;top:150px}
+  .book{grid-template-columns:1fr 380px;gap:48px;padding-top:36px}
+  .book-main{max-width:760px;min-width:0}
+  .summary{position:sticky;top:150px}
+  .actions{flex-direction:row;justify-content:space-between}
+  .actions .btn-primary{min-width:240px}
+  .opts.two{grid-template-columns:1fr 1fr}
+  .p2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  .st-labels{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font:600 14px var(--fh);color:var(--muted);margin-top:8px}
+  .st-labels .on{color:var(--primary-text)}
+  .conf{padding-top:56px}
+  .conf-acts{grid-template-columns:1fr 1fr}
+  .cgrid{grid-template-columns:1.25fr 1fr;align-items:start}
+  .qa{grid-template-columns:repeat(4,1fr)}
+  .e404{padding-top:80px}
+  .e404 .num{font-size:160px}
+  .e404 .num i{width:150px;height:150px}
+  .e404 .acts{grid-template-columns:1fr 1fr;max-width:520px}
+  .fab .lbl{display:inline}
+  .toast{bottom:32px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.conf-ic path{stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<div id="top"></div>
+<main id="main" tabindex="-1"></main>
+<div id="foot"></div>
+<button class="fab" data-action="whatsapp" aria-label="Escribir por WhatsApp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="lbl">¿Dudas? WhatsApp</span></button>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="dlg"></dialog>
+<dialog id="drawer" class="drawer"></dialog>
+
+<script>
+/* =========================================================
+   ICONOS E ILUSTRACIONES
+   ========================================================= */
+const I = {
+  phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  chat:'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  calplus:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v5M9.5 16.5h5"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  alert:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>',
+  steth:'<path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>',
+  syringe:'<path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6"/>',
+  scissors:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>',
+  cross:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',
+  menu:'<path d="M3 6h18M3 12h18M3 18h18"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  arrowL:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  arrowR:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+  star:'<path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+  user:'<circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>',
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>',
+  share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/>',
+  nav:'<path d="m3 11 19-9-9 19-2-8-8-2z"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  chevD:'<path d="m6 9 6 6 6-6"/>',
+  chevR:'<path d="m9 18 6-6-6-6"/>',
+  chevL:'<path d="m15 18-6-6 6-6"/>',
+  heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+  book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M20 17v5H6.5A2.5 2.5 0 0 1 4 19.5"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  tag:'<path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/>',
+  car:'<path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><path d="M3 12h18"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/>',
+  award:'<circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/>',
+  clockAlert:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/><path d="M19 3l2 2"/>'
+};
+const ic = (n, s) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"${s?` style="width:${s}px;height:${s}px"`:''}>${I[n]}</svg>`;
+const paw = s => `<svg class="ico paw" viewBox="0 0 24 24" aria-hidden="true"${s?` style="width:${s}px;height:${s}px"`:''}><ellipse cx="5.6" cy="10" rx="2.1" ry="2.7"/><ellipse cx="9.4" cy="5.6" rx="2.1" ry="2.7"/><ellipse cx="14.6" cy="5.6" rx="2.1" ry="2.7"/><ellipse cx="18.4" cy="10" rx="2.1" ry="2.7"/><path d="M12 11.2c-3 0-6.2 4.4-6.2 7 0 1.8 1.4 2.8 3 2.8 1.3 0 2-.7 3.2-.7s1.9.7 3.2.7c1.6 0 3-1 3-2.8 0-2.6-3.2-7-6.2-7z"/></svg>`;
+const stars = () => `<div class="stars" role="img" aria-label="5 de 5 estrellas">${ic('star').repeat(5)}</div>`;
+
+/* Fotografías reales (Unsplash, licencia libre). Se cargan desde su CDN. */
+const PH = {
+  hero:"1770836037793-95bdbf190f71", consulta:"1770836037289-e00e5f351d11", vacunacion:"1770836037275-38b44e4b101f",
+  cirugia:"1551076805-e1869033e561", peluqueria:"1719464454959-9cf304ef4774", gato:"1733783506192-653df6185a7d",
+  equipo:"1700665537650-1bf37979aae0", laura:"1594824476967-48c8b964273f", andres:"1622253692010-333f2da6031d",
+  sofia:"1781296134652-1f9ad66dd29a", mateo:"1612531385446-f7e6d131e1d0"
+};
+const photo = (k, w, h, alt, eager) => { const u = (W,H) => `https://images.unsplash.com/photo-${PH[k]}?w=${W}&h=${H}&fit=crop&crop=faces,center&auto=format&q=70`;
+  return `<img class="photo" src="${u(w,h)}" srcset="${u(w,h)} 1x, ${u(w*2,h*2)} 2x" width="${w}" height="${h}" alt="${alt}"${eager?"":" loading=\"lazy\""} decoding="async">`; };
+const mapArt = () => `<div class="map" role="img" aria-label="Mapa: la clínica está en la Calle 45 con Carrera 12, frente al Parque Principal y al lado de la Panadería">
+<svg viewBox="0 0 600 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <rect width="600" height="380" fill="#E9EDE4"/>
+  <rect x="330" y="40" width="220" height="150" rx="18" fill="#BFE3C6"/>
+  <text x="440" y="120" text-anchor="middle" font-family="Nunito Sans,Segoe UI" font-weight="800" font-size="17" fill="#2F5D3A">Parque Principal</text>
+  <path d="M-10 230 H610" stroke="#fff" stroke-width="34"/><path d="M-10 230 H610" stroke="#D6DAD0" stroke-width="2" stroke-dasharray="14 12"/>
+  <path d="M280 -10 V390" stroke="#fff" stroke-width="30"/><path d="M60 -10 V390" stroke="#fff" stroke-width="20"/>
+  <path d="M-10 330 C150 300 300 360 610 320" stroke="#A9D2E8" stroke-width="22" fill="none"/>
+  <text x="110" y="222" font-family="Nunito Sans,Segoe UI" font-weight="800" font-size="15" fill="#4A5160">Calle 45</text>
+  <text x="292" y="30" font-family="Nunito Sans,Segoe UI" font-weight="800" font-size="15" fill="#4A5160" transform="rotate(90 292 30)">Carrera 12</text>
+  <rect x="140" y="120" width="70" height="60" rx="8" fill="#D8D3C8"/><text x="175" y="156" text-anchor="middle" font-family="Nunito Sans,Segoe UI" font-size="12" font-weight="700" fill="#4A5160">Panadería</text>
+  <g class="pin"><g transform="translate(232 112)"><path d="M24 0C10.7 0 0 10.7 0 24c0 18 24 46 24 46s24-28 24-46C48 10.7 37.3 0 24 0z" fill="#E0001B"/><circle cx="24" cy="24" r="14" fill="#fff"/></g>
+  <g transform="translate(246 126) scale(.85)" style="color:#E0001B">${paw().replace('class="ico paw"','class="paw" width="24" height="24"')}</g></g>
+  <rect x="196" y="74" width="136" height="30" rx="15" fill="#fff" stroke="#D6DAD0"/>
+  <text x="264" y="94" text-anchor="middle" font-family="Poppins,Segoe UI" font-weight="700" font-size="14" fill="#1E1E24">Patitas Felices</text>
+</svg></div>`;
+
+/* =========================================================
+   DATOS
+   ========================================================= */
+const money = v => '$' + v.toLocaleString('es-CO');
+const SV = {
+  consulta:{n:'Consulta general',i:'steth',p:60000,from:false,d:'30 min',vet:'laura',eyebrow:'Diagnóstico',
+    t:'Revisión completa, diagnóstico y plan de tratamiento.',
+    long:'Una revisión de pies a cabeza para entender qué le pasa a tu mascota y cómo ayudarla, explicada sin tecnicismos.',
+    incl:['Examen físico completo','Revisión de peso, piel, ojos y oídos','Diagnóstico y plan de tratamiento','Fórmula médica enviada por WhatsApp'],
+    faq:[['¿Qué debo llevar?','El carné de vacunas y, si los tiene, exámenes o fórmulas anteriores.'],['¿Cuánto dura?','Unos 30 minutos.'],['¿Cómo puedo pagar?','Efectivo, tarjeta débito o crédito, Nequi o Daviplata.']]},
+  vacunacion:{n:'Vacunación',i:'syringe',p:45000,from:true,d:'20 min',vet:'laura',eyebrow:'Prevención',unit:'por vacuna',
+    t:'Plan de vacunas para cachorros, gatitos y adultos.',
+    long:'Protegemos a tu mascota desde sus primeras semanas con un plan de vacunas a su medida y un carné digital para que nunca olvides un refuerzo.',
+    incl:['Revisión general y control de peso','Aplicación de la vacuna con jeringa nueva','Carné de vacunación digital','Recordatorio por WhatsApp para el siguiente refuerzo'],
+    plan:true,
+    faq:[['¿Mi mascota necesita estar en ayunas?','No. Solo procura que esté tranquila y trae su carné de vacunas si ya tiene uno.'],['¿Puede tener reacciones?','Es normal que esté algo decaída o que le duela la zona por 24 horas. Si notas hinchazón en la cara o vómito, llámanos de inmediato.'],['¿Desde qué edad puedo vacunar?','Desde las 6 a 8 semanas de vida. El veterinario te indicará el calendario completo.']]},
+  cirugia:{n:'Cirugía',i:'cross',p:280000,from:true,d:'Según procedimiento',vet:'andres',eyebrow:'Procedimientos',
+    t:'Esterilización y cirugías programadas con anestesia monitoreada.',
+    long:'Cirugías programadas con anestesia monitoreada, en un quirófano equipado y con seguimiento cercano después del procedimiento.',
+    incl:['Valoración prequirúrgica','Anestesia monitoreada','Recuperación el mismo día','Control posoperatorio sin costo'],
+    faq:[['¿Debe ir en ayunas?','Sí: 8 horas sin comida y 4 horas sin agua. Te enviamos las indicaciones por WhatsApp.'],['¿Cuándo puede volver a casa?','En la mayoría de los casos, el mismo día.'],['¿El precio incluye medicamentos?','Incluye la anestesia y la cirugía. Los medicamentos para casa se cotizan aparte y te los informamos antes.']]},
+  peluqueria:{n:'Peluquería',i:'scissors',p:40000,from:true,d:'60 a 90 min',vet:'sofia',eyebrow:'Estética y cuidado',
+    t:'Baño, corte, uñas y limpieza de oídos.',
+    long:'Un baño relajante y un corte a la medida de la raza, supervisado por nuestra dermatóloga.',
+    incl:['Baño con champú especial para su piel','Corte según la raza','Corte de uñas','Limpieza de oídos'],
+    faq:[['¿El precio cambia según el tamaño?','Sí: desde $40.000 para razas pequeñas. Te confirmamos el valor exacto al llegar.'],['¿Puedo quedarme con mi mascota?','Claro. También puedes dejarla y te avisamos por WhatsApp cuando esté lista.'],['¿Atienden gatos?','Sí, con cita y en un espacio tranquilo.']]}
+};
+const VETS = {
+  laura:{n:'Dra. Laura Méndez',e:'Medicina general y felinos',b:'Especialista en gatos y en el primer año de vida de cachorros.',y:12,d:'Lun a Vie',av:'LM',c:''},
+  andres:{n:'Dr. Andrés Rojas',e:'Cirugía y ortopedia',b:'Experto en dolor articular y cirugías de cadera en perros grandes.',y:15,d:'Mar a Sáb',av:'AR',c:'av2'},
+  sofia:{n:'Dra. Sofía Gutiérrez',e:'Dermatología',b:'Alergias, piel y pelaje. Supervisa el área de peluquería.',y:8,d:'Lun a Sáb',av:'SG',c:'av3'},
+  mateo:{n:'Dr. Mateo Herrera',e:'Urgencias',b:'Coordina el turno de emergencias 24 horas.',y:10,d:'Turnos de urgencias',av:'MH',c:'av4',noBook:true}
+};
+const ALT = {consulta:'Veterinario revisando a un perro en la camilla', vacunacion:'Veterinaria aplicando una vacuna a un perro pequeño', cirugia:'Quirófano de la clínica con equipo de anestesia y monitoreo', peluqueria:'Peluquera cortando el pelo de un perro blanco'};
+const ADDRESS = 'Calle 45 # 12-30, Barrio San José';
+const PHONE = '300 123 4567';
+
+/* =========================================================
+   ESTADO (con autoguardado)
+   ========================================================= */
+const blank = () => ({service:null,petType:null,petName:'',petAge:'',ageUnit:'meses',date:null,time:null,vet:'',name:'',phone:'',email:'',notes:'',reminder:true,consent:false,step:1,startedAt:null});
+const store = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+  del(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+let S = Object.assign(blank(), store.get('pf-draft')?.data || {});
+let taken = new Set(store.get('pf-taken') || []);
+let contested = new Set(store.get('pf-contested') || []);
+let resumeDismissed = false;
+let calMonth = null;
+let suggestions = [];
+const hasDraft = () => !!(S.service || S.petName || S.date || S.name);
+function save(){
+  if (!S.startedAt) S.startedAt = Date.now();
+  store.set('pf-draft',{data:S,savedAt:Date.now()});
+  const a = document.querySelector('.autosave'); if (a){a.classList.remove('flash');void a.offsetWidth;a.classList.add('flash');}
+}
+function clearDraft(){ S = blank(); store.del('pf-draft'); }
+(function expire(){ const d = store.get('pf-draft'); if (d && Date.now()-d.savedAt > 24*3600e3){ clearDraft(); } })();
+
+/* =========================================================
+   FECHAS Y DISPONIBILIDAD
+   ========================================================= */
+const pad = n => String(n).padStart(2,'0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseISO = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const today = () => { const t = new Date(); t.setHours(0,0,0,0); return t; };
+const fmtDate = s => { const t = parseISO(s).toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'}); return t.charAt(0).toUpperCase()+t.slice(1); };
+const fmtShort = s => parseISO(s).toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'}).replace(/\./g,'');
+const fmtTime = t => { let [h,m] = t.split(':').map(Number); const ap = h<12?'a.m.':'p.m.'; if(h>12)h-=12; return `${h}:${pad(m)} ${ap}`; };
+const hash = s => [...s].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+const SLOTS = {manana:['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30'], tarde:['14:00','14:30','15:00','15:30','16:00','16:30']};
+function dayStatus(d){
+  const t = today(), max = new Date(t); max.setDate(max.getDate()+60);
+  if (d < t || d > max) return 'off';
+  if (d.getDay() === 0) return 'off';
+  if (hash(iso(d)) % 9 === 4) return 'full';
+  return 'av';
+}
+function slotFull(date, time){
+  if (taken.has(date+' '+time)) return true;
+  const d = parseISO(date);
+  if (iso(d) === iso(today())){ const now = new Date(); const [h,m] = time.split(':').map(Number); if (h*60+m <= now.getHours()*60+now.getMinutes()+60) return true; }
+  if (d.getDay() === 6 && time >= '14:00') return true;
+  return hash(date+time) % 4 === 0;
+}
+const isLastSlot = (date, time) => !slotFull(date, time) && hash(time+date) % 7 === 1;
+function vetFor(){ return S.vet || (S.service ? SV[S.service].vet : 'laura'); }
+
+/* =========================================================
+   PIEZAS GLOBALES
+   ========================================================= */
+const logo = () => `<a class="logo" href="#/inicio" aria-label="Patitas Felices, ir al inicio"><span class="logo-mark">${paw()}</span><span class="logo-txt"><b>Patitas Felices</b><span>Clínica veterinaria</span></span></a>`;
+const NAV = [['inicio','Inicio'],['servicios','Servicios'],['equipo','Nosotros'],['contacto','Contacto']];
+function header(active){
+  const bar = `<div class="tbar"><div class="wrap tbar-in">
+      <span class="tbar-txt">${ic('alert')}<span><b>¿Emergencia?</b><span class="d-only"> Atendemos 24 horas, todos los días.</span></span></span>
+      <button class="tbar-call" data-action="emergency">${ic('phone')} Llamar<span class="d-only">&nbsp;· ${PHONE}</span></button>
+    </div></div>`;
+  if (active === 'booking') return `<div class="sticky">${bar}<header class="hdr"><div class="wrap hdr-in">${logo()}<button class="bk-exit" data-action="exit">${ic('x')} Salir</button>${themeBtn('')}</div></header></div>`;
+  return `<div class="sticky">${bar}
+    <header class="hdr"><div class="wrap hdr-in">
+      ${logo()}
+      <nav class="nav" aria-label="Principal">${NAV.map(([id,t])=>`<a href="#/${id}"${id===active?' aria-current="page"':''}>${t}</a>`).join('')}</nav>
+      ${themeBtn('hdr-theme')}
+      <a class="btn btn-primary btn-sm hdr-cta" href="#/agendar">${ic('cal')}<span class="d-only">Agendar cita</span><span class="m-only">Agendar</span></a>
+      <button class="burger" data-action="menu" aria-label="Abrir menú" aria-haspopup="dialog">${ic('menu',26)}</button>
+    </div></header></div>${resumeBar()}`;
+}
+const isDark = () => document.documentElement.dataset.theme === 'dark';
+const themeBtn = cls => `<button class="theme-btn ${cls}" data-action="theme" aria-pressed="${isDark()}" aria-label="Modo oscuro">${ic('moon').replace('class="ico"','class="ico moon"')}${ic('sun').replace('class="ico"','class="ico sun"')}</button>`;
+function setTheme(t){
+  document.documentElement.dataset.theme = t;
+  document.querySelectorAll('[data-action=theme]').forEach(b=>b.setAttribute('aria-pressed', t==='dark'));
+  try{localStorage.setItem('pf-theme', t)}catch(e){}
+}
+function resumeBar(){
+  if (!hasDraft() || resumeDismissed || location.hash.startsWith('#/confirmada')) return '';
+  const what = [S.service && SV[S.service].n, S.petName && `para ${S.petName}`].filter(Boolean).join(' ') || 'tu cita';
+  return `<div class="resume" role="region" aria-label="Reserva sin terminar"><div class="wrap resume-in">
+    <span class="txt">${ic('save')}<span><b>¿Continuar tu cita?</b> Guardamos tu reserva de ${what}. Retómala donde la dejaste.</span></span>
+    <button class="btn btn-ghost btn-sm" data-action="discard">Descartar</button>
+    <a class="btn btn-primary btn-sm" href="#/agendar/${S.step}">Continuar ${ic('arrowR')}</a>
+  </div></div>`;
+}
+const footer = () => `<footer class="ftr"><div class="wrap">
+  <div class="ftr-grid">
+    <div>${logo()}<p style="margin-top:14px;max-width:320px">8 años cuidando a las mascotas del barrio con cariño, honestidad y precios claros.</p></div>
+    <div><h4>Contacto</h4><ul><li>${ic('pin')}${ADDRESS}</li><li>${ic('phone')}${PHONE}</li><li>${ic('mail')}hola@patitasfelices.co</li></ul></div>
+    <div><h4>Horario</h4><ul><li>${ic('clock')}Lun a Sáb: 8:00 a.m. – 7:00 p.m.</li><li>${ic('clock')}Dom: 9:00 a.m. – 1:00 p.m.</li><li>${ic('alert')}Emergencias: 24 horas</li></ul></div>
+    <div><h4>Enlaces</h4><ul><li><a href="#/servicios">Servicios y precios</a></li><li><a href="#/equipo">Nuestro equipo</a></li><li><a href="#/agendar">Agendar cita</a></li><li><a href="#/privacidad">Política de privacidad</a></li></ul></div>
+  </div>
+  <div class="ftr-bottom">© 2026 Patitas Felices · Clínica veterinaria · Prototipo académico · Fotografías: Unsplash</div>
+</div></footer>`;
+const crumb = items => `<nav class="crumb" aria-label="Ruta de navegación">${items.map((t,i)=>i<items.length-1?`<a href="#/${t[1]}">${t[0]}</a>${ic('chevR')}`:`<span aria-current="page">${t[0]}</span>`).join('')}</nav>`;
+const priceTxt = s => `${s.from?'<small>Desde </small>':''}${money(s.p)}`;
+
+/* =========================================================
+   PÁGINAS
+   ========================================================= */
+const P = {};
+P.inicio = () => ({active:'inicio', title:'Inicio', html:`
+  <section class="hero">
+    <div class="hero-bg">${photo('hero',1600,900,'',true)}</div><div class="hero-ov"></div>
+    <div class="wrap hero-in"><div class="hero-txt">
+      <span class="hero-badge"><i aria-hidden="true"></i> Urgencias 24 h · Barrio San José</span>
+      <h1 tabindex="-1">Cuidamos a tu mascota como parte de tu <em>familia</em></h1>
+      <p class="lead">Clínica veterinaria de barrio con 8 años de experiencia. Agenda tu cita en menos de 2 minutos, sin crear cuenta.</p>
+      <div class="cta-row"><a class="btn btn-primary btn-lg" href="#/agendar">${ic('cal')} Agendar cita</a><button class="btn btn-danger btn-lg pulse" data-action="emergency">${ic('phone')} Emergencias 24 h</button></div>
+    </div></div>
+  </section>
+  <section class="sec"><div class="wrap">
+    <div class="sec-head"><div><span class="kicker">Servicios</span><h2>Cuidado completo para tu mascota</h2></div><a href="#/servicios" style="font-weight:700">Ver todos</a></div>
+    <div class="grid g-feat">${Object.entries(SV).map(([id,s])=>`<a class="svc feat lift" href="#/servicio/${id}"><span class="si">${ic(s.i)}</span><span class="fx"><h3>${s.n}</h3><span class="pr">${priceTxt(s)}</span></span><span class="go">${ic('chevR')}</span></a>`).join('')}</div>
+  </div></section>
+  <section class="sec"><div class="wrap"><div class="band band-guide">
+    <span class="bi">${ic('book')}</span>
+    <div><h2 style="font-size:24px">¿Es tu primera mascota?</h2><p style="margin-top:6px">Descarga gratis nuestra Guía del primerizo: vacunas, alimentación y cuidados de los primeros meses.</p></div>
+    <button class="btn btn-primary" data-action="guide-pdf">${ic('download')} Descargar la guía</button>
+  </div></div></section>
+  <section class="sec"><div class="wrap">
+    <div class="sec-head"><div><span class="kicker">Testimonios</span><h2>Lo que dicen nuestros clientes</h2></div></div>
+    <div class="grid g-3">
+      ${[['VR','Valentina R.','Dueña de Milo','Me explicaron el plan de vacunas de Milo paso a paso, y pagué lo mismo que vi en la web.',''],['JP','Johan P.','Dueño de Bruno','Agendé el control de Bruno entre dos reuniones y la cita llegó directo a mi calendario.','av2'],['CM','Carlos M.','Dueño de Rocky','Llamé antes de salir de la finca y me confirmaron que atendían a Rocky de inmediato.','av3']].map(([a,n,p,q,c])=>`<figure class="quote">${stars()}<p>“${q}”</p><footer><span class="avatar av-s ${c}" aria-hidden="true">${a}</span><span><b>${n}</b>${p}</span></footer></figure>`).join('')}
+    </div>
+  </div></section>
+  <section class="sec"><div class="wrap">
+    <div class="sec-head"><div><span class="kicker">Ubicación</span><h2>Visítanos</h2></div></div>
+    <div class="loc">${mapArt()}
+      <div><ul class="info-list">
+        <li><span class="ii">${ic('pin')}</span><div><b>${ADDRESS}</b><span>Frente al Parque Principal, al lado de la Panadería. Parqueadero gratis.</span></div></li>
+        <li><span class="ii">${ic('clock')}</span><div><b>Lun a Sáb: 8:00 a.m. – 7:00 p.m.</b><span>Domingos 9:00 a.m. – 1:00 p.m. · Emergencias 24 h</span></div></li>
+      </ul>
+      <div class="btn-stack"><button class="btn btn-primary" data-action="maps">${ic('nav')} Cómo llegar</button><button class="btn btn-wa" data-action="whatsapp">${ic('chat')} Escribir por WhatsApp</button><button class="btn btn-secondary" data-action="call">${ic('phone')} Llamar ${PHONE}</button></div></div>
+    </div>
+  </div></section>`});
+
+P.servicios = () => ({active:'servicios', title:'Servicios y precios', html:`
+  <div class="wrap">${crumb([['Inicio','inicio'],['Servicios']])}
+    <h1 tabindex="-1">Servicios y precios</h1>
+    <p class="lead">Precios referenciales en pesos colombianos. El valor final se confirma en la consulta y siempre te avisamos antes de cualquier costo adicional.</p></div>
+  <section class="sec" style="padding-top:26px"><div class="wrap"><div class="grid g-svc">
+    ${Object.entries(SV).map(([id,s])=>`<article class="svc lift"><span class="si">${ic(s.i)}</span><h2 style="font-size:22px">${s.n}</h2><p>${s.t}</p>
+      <div class="pr">${priceTxt(s)}</div><div class="meta">${ic('clock')} ${s.d}</div>
+      <div class="acts"><a class="btn btn-primary btn-sm" href="#/agendar?servicio=${id}">Agendar ${s.n.toLowerCase()}</a><a class="btn btn-secondary btn-sm" href="#/servicio/${id}">Ver detalle</a></div></article>`).join('')}
+    <article class="svc urgent"><span class="si">${ic('alert')}</span><h2 style="font-size:22px">Emergencias 24 h</h2><p>Atendemos urgencias todos los días, a cualquier hora. No necesitas cita.</p>
+      <div class="pr"><small>Consulta de urgencia</small>${money(90000)}</div><div class="meta">${ic('clock')} Atención inmediata</div>
+      <div class="acts"><button class="btn btn-danger btn-sm pulse" data-action="emergency">${ic('phone')} Llamar ahora</button><button class="btn btn-wa btn-sm" data-action="whatsapp">${ic('chat')} WhatsApp</button></div></article>
+    <article class="svc" style="background:var(--soft);border-style:dashed"><span class="si">${ic('chat')}</span><h2 style="font-size:22px">¿No sabes qué servicio elegir?</h2><p>Escríbenos y te orientamos sin costo.</p><div class="acts"><button class="btn btn-secondary btn-sm" data-action="whatsapp">Preguntar por WhatsApp</button></div></article>
+  </div></div></section>`});
+
+P.servicio = id => { const s = SV[id]; if (!s) return P.e404();
+  return {active:'servicios', title:s.n, html:`
+  <div class="wrap">${crumb([['Inicio','inicio'],['Servicios','servicios'],[s.n]])}
+  <div class="det">
+    <div class="det-head"><span class="eyebrow">${ic(s.i)} ${s.eyebrow}</span><h1 tabindex="-1">${s.n}</h1><p class="lead">${s.long}</p><div class="det-photo">${photo(id,960,540,ALT[id],true)}</div></div>
+    <aside class="det-aside" aria-label="Precio y agendamiento"><div class="price-card">
+      <div class="big">${s.from?'<small>Desde</small><br>':''}${money(s.p)} ${s.unit?`<small>${s.unit}</small>`:''}</div>
+      <div style="display:flex;gap:8px;align-items:center;color:var(--muted)">${ic('clock')} ${s.d} · Incluye revisión general</div>
+      <a class="btn btn-primary btn-lg btn-block" href="#/agendar?servicio=${id}">${ic('cal')} Agendar ${s.n.toLowerCase()}</a>
+      <button class="btn btn-wa btn-block" data-action="whatsapp">${ic('chat')} Preguntar por WhatsApp</button>
+      <div class="note">${ic('info')}<span>Sin cobros sorpresa: el precio se confirma antes de cualquier procedimiento.</span></div>
+    </div></aside>
+    <div class="det-body">
+      <h2 class="sec-title" style="margin-top:0">¿Qué incluye?</h2>
+      <ul class="checklist">${s.incl.map(t=>`<li>${ic('check')}<span>${t}</span></li>`).join('')}</ul>
+      ${s.plan?`<h2 class="sec-title">Plan de vacunación recomendado</h2>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th scope="col">Edad</th><th scope="col">Perros</th><th scope="col">Gatos</th></tr></thead><tbody>
+        <tr><td><b>6 a 8 semanas</b></td><td>Parvovirus y moquillo</td><td>Triple felina (1.ª dosis)</td></tr>
+        <tr><td><b>10 a 12 semanas</b></td><td>Polivalente (2.ª dosis)</td><td>Triple felina (2.ª dosis)</td></tr>
+        <tr><td><b>14 a 16 semanas</b></td><td>Polivalente y rabia</td><td>Triple felina y rabia</td></tr>
+        <tr><td><b>Cada año</b></td><td>Refuerzo polivalente y rabia</td><td>Refuerzo triple felina y rabia</td></tr>
+      </tbody></table></div>
+      <p style="font-size:15px;color:var(--muted);margin-top:8px">El veterinario ajusta el plan según la salud y el estilo de vida de tu mascota.</p>`:''}
+      <h2 class="sec-title">Preguntas frecuentes</h2>
+      ${s.faq.map(([q,a],i)=>`<details class="faq"${i===0?' open':''}><summary>${q} ${ic('chevD')}</summary><p>${a}</p></details>`).join('')}
+    </div>
+  </div></div>`};
+};
+
+P.equipo = () => ({active:'equipo', title:'Nuestro equipo', html:`
+  <div class="wrap">${crumb([['Inicio','inicio'],['Nuestro equipo']])}<h1 tabindex="-1">Nuestro equipo</h1><p class="lead">Veterinarios certificados que conocen a tu mascota por su nombre.</p></div>
+  <section class="sec" style="padding-top:26px"><div class="wrap"><div class="grid g-4">
+    ${Object.entries(VETS).map(([id,v])=>`<article class="vet"><span class="vet-photo">${photo(id,224,224,'Retrato de '+v.n)}</span><h2 style="font-size:21px">${v.n}</h2><span class="tag">${v.e}</span><p>${v.b}</p><div class="meta">${ic('award')} ${v.y} años de experiencia</div><div class="meta">${ic('cal')} Atiende: ${v.d}</div>
+      ${v.noBook?`<button class="btn btn-danger btn-sm btn-block" data-action="emergency">${ic('phone')} Línea de urgencias</button>`:`<a class="btn btn-secondary btn-sm btn-block" href="#/agendar?vet=${id}">Agendar con ${v.n.split(' ').slice(0,2).join(' ')}</a>`}</article>`).join('')}
+  </div></div></section>
+  <section class="sec"><div class="wrap about"><div class="about-photo">${photo('equipo',720,540,'Dos veterinarios de la clínica revisando a un cachorro')}</div><div><h2 style="margin-bottom:18px">Por qué nos eligen</h2><div class="grid">
+    ${[['heart','Trato amable','Tu mascota es atendida con paciencia y sin prisas.'],['tag','Precios claros','Publicamos nuestros precios y te avisamos antes de cualquier costo extra.'],['shield','8 años en el barrio','Más de 5.000 mascotas atendidas y recomendadas por los vecinos.']].map(([i,t,d])=>`<div class="value"><span class="vi">${ic(i)}</span><div><h3>${t}</h3><p style="color:var(--muted);margin-top:4px">${d}</p></div></div>`).join('')}</div>
+  </div></div></section>`});
+
+P.contacto = () => { const dow = new Date().getDay(); const days=[['Lunes',1],['Martes',2],['Miércoles',3],['Jueves',4],['Viernes',5],['Sábado',6],['Domingo',0]];
+  return {active:'contacto', title:'Contacto y ubicación', html:`
+  <div class="wrap">${crumb([['Inicio','inicio'],['Contacto']])}<h1 tabindex="-1">Contacto y ubicación</h1><p class="lead">Escríbenos, llámanos o ven directamente. Estamos frente al Parque Principal.</p>
+    <div class="qa"><button class="btn btn-secondary" data-action="call">${ic('phone')} Llamar</button><button class="btn btn-wa" data-action="whatsapp">${ic('chat')} WhatsApp</button><button class="btn btn-secondary" data-action="maps">${ic('nav')} Google Maps</button><button class="btn btn-secondary" data-action="waze">${ic('car')} Waze</button></div></div>
+  <section class="sec" style="padding-top:22px"><div class="wrap cgrid">
+    <div style="display:grid;gap:20px">${mapArt()}
+      <div class="box"><ul class="info-list">
+        <li><span class="ii">${ic('pin')}</span><div><b>${ADDRESS}</b><span>Si vienes por la vía principal, gira en la Carrera 12 y avanza 2 cuadras. Estamos al lado de la Panadería, con fachada azul.</span></div></li>
+        <li><span class="ii">${ic('car')}</span><div><b>Parqueadero gratis</b><span>Hay espacio para carros y camionetas. Te ayudamos a bajar a tu mascota si lo necesitas.</span></div></li>
+      </ul></div>
+    </div>
+    <div style="display:grid;gap:20px">
+      <div class="emer"><h2 style="font-size:24px;display:flex;gap:10px;align-items:center">${ic('alert',28)} Emergencias 24 h</h2><p>Si tu mascota no respira bien, sangra o tuvo un accidente, llámanos antes de salir para preparar su llegada.</p><button class="btn btn-lg pulse-w" data-action="emergency">${ic('phone')} Llamar ${PHONE}</button></div>
+      <div class="box"><h2 style="font-size:22px;margin-bottom:10px">Horario de atención</h2><table class="hours"><caption class="sr">Horario de atención</caption>
+        ${days.map(([n,d])=>`<tr class="${d===dow?'today':''}"><td>${n}${d===dow?' · Hoy':''}</td><td>${d===0?'9:00 a.m. – 1:00 p.m.':'8:00 a.m. – 7:00 p.m.'}</td></tr>`).join('')}</table></div>
+      <form class="box" id="fcontact" novalidate><h2 style="font-size:22px;margin-bottom:14px">Escríbenos</h2>
+        <div class="form-alert" role="alert">${ic('alert')}<span></span></div>
+        <div class="field" data-f="cname"><label class="lab" for="cname">Nombre</label><input class="input" id="cname" autocomplete="name" placeholder="Tu nombre"><span class="err" id="e-cname">${ic('alert')}<span></span></span></div>
+        <div class="field" data-f="cphone"><label class="lab" for="cphone">Celular</label><div class="phone-wrap"><span class="pre" aria-hidden="true">+58</span><input class="input" id="cphone" inputmode="numeric" autocomplete="tel-national" placeholder="412 123 4567" aria-describedby="h-cphone e-cphone"></div><span class="help" id="h-cphone">10 dígitos, sin el +58.</span><span class="err" id="e-cphone">${ic('alert')}<span></span></span></div>
+        <div class="field" data-f="cmsg"><label class="lab" for="cmsg">Mensaje</label><textarea class="input" id="cmsg" placeholder="¿En qué te ayudamos?"></textarea><span class="err" id="e-cmsg">${ic('alert')}<span></span></span></div>
+        <button class="btn btn-primary btn-block" type="submit">Enviar mensaje</button>
+      </form>
+    </div>
+  </div></section>`};
+};
+
+P.e404 = () => ({active:'', title:'Página no encontrada', html:`
+  <div class="wrap"><div class="e404">
+    <div class="num" aria-hidden="true">4<i>${paw()}</i>4</div>
+    <h1 tabindex="-1" style="margin-top:20px">¡Ups! Esta página se fue a pasear</h1>
+    <p class="lead">No encontramos lo que buscabas. Puede que el enlace haya cambiado, pero tu mascota sigue en buenas manos.</p>
+    <div class="acts"><a class="btn btn-primary btn-lg" href="#/inicio">${ic('home')} Volver al inicio</a><a class="btn btn-secondary btn-lg" href="#/agendar">${ic('cal')} Agendar cita</a></div>
+    <div class="links"><a href="#/servicios">Servicios y precios</a><a href="#/equipo">Nuestro equipo</a><a href="#/contacto">Contacto y ubicación</a></div>
+  </div></div>`});
+
+/* ---------- Agendar ---------- */
+function stepper(n){
+  const L=['Servicio y mascota','Fecha y hora','Tus datos'];
+  return `<div class="stepper"><div class="st-txt"><span style="color:var(--text);font-weight:600">Paso ${n} de 3: ${L[n-1]}</span><span>${n===3?'¡Último paso!':`Falta${3-n>1?'n':''} ${3-n}`}</span></div>
+    <div class="bars" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${n}" aria-label="Progreso de la reserva">${[1,2,3].map(i=>`<i class="${i<n?'on':''}" data-i="${i}"></i>`).join('')}</div>
+    <div class="st-labels" aria-hidden="true">${L.map((l,i)=>`<span class="${i+1===n?'on':''}">${i+1}. ${l}</span>`).join('')}</div></div>`;
+}
+function summaryHTML(){
+  const s = S.service && SV[S.service];
+  const r = (i,l,v,step) => `<div class="sum-row">${ic(i)}<div><b>${l}</b>${v||'<span class="empty">Por elegir</span>'}</div>${v&&step?`<button class="edit" data-go-step="${step}">Cambiar<span class="sr"> ${l.toLowerCase()}</span></button>`:''}</div>`;
+  const pet = S.petName ? `${S.petName}${S.petType?' · '+S.petType:''}${S.petAge?` · ${S.petAge} ${S.ageUnit}`:''}` : '';
+  return `<h2>Tu cita</h2>
+    ${r(s?s.i:'tag','Servicio', s?s.n:'', 1)}
+    ${r('heart','Mascota', pet, 1)}
+    ${r('cal','Fecha y hora', S.date&&S.time?`${fmtDate(S.date)} · ${fmtTime(S.time)}`:'', 2)}
+    ${r('user','Te atiende', S.service||S.vet?VETS[vetFor()].n:'', 2)}
+    ${r('pin','Lugar', ADDRESS)}
+    <div class="sum-total"><span>Precio referencial</span><strong>${s?(s.from?'<small style="font-size:13px;font-weight:600">desde </small>':'')+money(s.p):'—'}</strong></div>
+    <div class="note" style="margin-top:12px">${ic('info')}<span>Pagas en la clínica. Sin cobros sorpresa: si se necesita algo más, te avisamos antes.</span></div>`;
+}
+const summary = () => `<aside class="summary d-only" id="summary" aria-label="Resumen de tu cita">${summaryHTML()}</aside>`;
+function miniHTML(){ const s = S.service && SV[S.service];
+  return s ? `<span>${ic(s.i)} <b>${s.n}</b>${S.date&&S.time?` · ${fmtShort(S.date)}, ${fmtTime(S.time)}`:''}</span><b>${s.from?'desde ':''}${money(s.p)}</b>` : `<span>${ic('info')} Elige un servicio para ver el precio</span>`; }
+const mini = () => `<div class="sum-mini m-only" id="mini" aria-live="polite">${miniHTML()}</div>`;
+function refreshSummary(){ const a=document.getElementById('summary'); if(a) a.innerHTML=summaryHTML(); const m=document.getElementById('mini'); if(m) m.innerHTML=miniHTML(); }
+const errBox = id => `<span class="err" id="e-${id}">${ic('alert')}<span></span></span>`;
+
+P.agendar = (step, q) => {
+  if (q.servicio && SV[q.servicio]) { S.service = q.servicio; save(); }
+  if (q.vet && VETS[q.vet] && !VETS[q.vet].noBook) { S.vet = q.vet; save(); }
+  if (!S.startedAt) { S.startedAt = Date.now(); }
+  step = Number(step) || 1;
+  if (step >= 2 && validate(1).length) step = 1;
+  if (step >= 3 && validate(2).length) step = 2;
+  S.step = step; save();
+  return {active:'booking', title:`Agendar cita · Paso ${step}`, html: step===1?step1():step===2?step2():step3(), after: ()=>{ setTimeout(()=>document.querySelectorAll('.bars i').forEach(b=>{ if(+b.dataset.i<=step) b.classList.add('on'); }),40); if(step===2) bindStep2(); }};
+};
+
+function step1(){
+  return `<div class="wrap book"><form class="book-main" id="f1" novalidate>
+    ${stepper(1)}
+    <h1 tabindex="-1" style="font-size:30px;margin-bottom:16px">¿Qué necesita tu mascota?</h1>
+    <div class="alert alert-danger" role="note">${ic('alert')}<div class="ax"><b>¿Es una emergencia?</b> No esperes una cita: llámanos y te atendemos de inmediato.</div><button type="button" class="btn btn-danger btn-sm pulse" data-action="emergency">${ic('phone')} Llamar</button></div>
+    <div class="form-alert" role="alert">${ic('alert')}<span></span></div>
+    <fieldset class="field" data-f="service"><legend>1. Elige el servicio</legend><div class="opts two">
+      ${Object.entries(SV).map(([id,s])=>`<label class="opt"><input type="radio" name="service" value="${id}"${S.service===id?' checked':''} aria-describedby="e-service"><span class="radio"></span><span class="oi">${ic(s.i)}</span><span><b>${s.n}</b><span>${s.d}</span></span><span class="price">${s.from?'<small>desde</small>':''}${money(s.p)}</span></label>`).join('')}
+    </div>${errBox('service')}</fieldset>
+    <fieldset style="margin-bottom:8px"><legend>2. Cuéntanos de tu mascota</legend>
+      <fieldset class="field" data-f="petType" style="margin-bottom:20px"><legend class="lab" style="font:700 16px var(--fb);margin-bottom:6px">Tipo de mascota</legend><div class="chips">
+        ${['Perro','Gato','Otro'].map(t=>`<label class="chipo"><input type="radio" name="petType" value="${t}"${S.petType===t?' checked':''} aria-describedby="e-petType">${ic('check')}${t}</label>`).join('')}
+      </div>${errBox('petType')}</fieldset>
+      <div class="field" data-f="petName"><label class="lab" for="petName">Nombre de tu mascota</label><input class="input" id="petName" name="petName" value="${esc(S.petName)}" placeholder="Ej.: Milo" autocomplete="off" aria-describedby="e-petName">${errBox('petName')}</div>
+      <div class="field" data-f="petAge"><span class="lab" id="lab-age">Edad</span><div class="row2"><input class="input" id="petAge" name="petAge" value="${esc(S.petAge)}" inputmode="numeric" placeholder="Ej.: 2" aria-labelledby="lab-age" aria-describedby="h-age e-petAge"><select class="input" id="ageUnit" name="ageUnit" aria-label="Unidad de la edad">${['meses','años'].map(u=>`<option${S.ageUnit===u?' selected':''}>${u}</option>`).join('')}</select></div><span class="help" id="h-age">Si no la sabes con exactitud, escribe un aproximado.</span>${errBox('petAge')}</div>
+    </fieldset>
+    ${mini()}
+    <div class="actions"><button type="button" class="btn btn-ghost" data-action="exit">Cancelar</button><button class="btn btn-primary btn-lg" type="submit">Continuar ${ic('arrowR')}</button></div>
+    <p class="autosave">${ic('save')} Guardamos tu avance automáticamente</p>
+  </form>${summary()}</div>`;
+}
+
+function step2(){
+  if (S.date) { const d = parseISO(S.date); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); }
+  else if (!calMonth) { const t = today(); calMonth = new Date(t.getFullYear(), t.getMonth(), 1); }
+  return `<div class="wrap book"><form class="book-main" id="f2" novalidate>
+    ${stepper(2)}
+    <h1 tabindex="-1" style="font-size:30px;margin-bottom:6px">Elige fecha y hora</h1>
+    <p class="live" style="margin-bottom:18px"><i></i> Disponibilidad en tiempo real</p>
+    <div class="form-alert" role="alert">${ic('alert')}<span></span></div>
+    ${mini()}
+    <div class="p2" id="p2"></div>
+    <div class="actions" style="margin-top:22px"><a class="btn btn-secondary" href="#/agendar/1">${ic('arrowL')} Atrás</a><button class="btn btn-primary btn-lg" type="submit">Continuar ${ic('arrowR')}</button></div>
+    <p class="autosave">${ic('save')} Tus datos del paso 1 están guardados</p>
+  </form>${summary()}</div>`;
+}
+function p2HTML(){
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const first = (new Date(y,m,1).getDay()+6)%7, n = new Date(y,m+1,0).getDate();
+  const t = today(); const minM = new Date(t.getFullYear(), t.getMonth(), 1); const maxM = new Date(t.getFullYear(), t.getMonth()+2, 1);
+  let cells = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map((d,i)=>`<span class="dow" aria-hidden="true">${d}</span>`).join('') + '<span></span>'.repeat(first);
+  for (let d=1; d<=n; d++){
+    const date = new Date(y,m,d), id = iso(date), st = dayStatus(date);
+    const lbl = date.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'}) + (st==='av'?', con cupos':st==='full'?', sin cupos':', no disponible');
+    cells += `<button type="button" class="day ${st==='av'?'av':''} ${id===iso(t)?'today':''}" data-date="${id}" aria-pressed="${S.date===id}" aria-label="${lbl}"${st!=='av'?' disabled':''}>${d}</button>`;
+  }
+  let slots;
+  if (!S.date) slots = `<div class="no-slots">${ic('cal')} Elige un día en el calendario para ver los horarios disponibles.</div>`;
+  else {
+    const grp = (k,l) => { const free = SLOTS[k].filter(h=>!slotFull(S.date,h));
+      return `<h3>${l} <span style="font-weight:500;color:var(--muted);font-size:14px">· ${free.length} disponibles</span></h3><div class="slot-grid" role="group" aria-label="Horarios de la ${l.toLowerCase()}">${SLOTS[k].map(h=>{const f=slotFull(S.date,h), last=isLastSlot(S.date,h);return `<button type="button" class="slot ${suggestions.includes(h)?'suggest':''}" data-time="${h}" aria-pressed="${S.time===h}"${f?' disabled':''} aria-label="${fmtTime(h)}${f?', sin cupo':last?', último cupo':''}">${fmtTime(h).replace(' a.m.','').replace(' p.m.','')}<small${last?' class="last"':''}>${f?'Sin cupo':last?'Último cupo':h<'12'?'a.m.':'p.m.'}</small></button>`}).join('')}</div>`; };
+    slots = `<h2 style="font-size:19px">${fmtDate(S.date)}</h2>${grp('manana','Mañana')}${grp('tarde','Tarde')}`;
+  }
+  return `<div class="cal field" data-f="date" style="margin:0"><div class="cal-head"><button type="button" class="cal-nav" data-cal="-1" aria-label="Mes anterior"${calMonth<=minM?' disabled':''}>${ic('chevL')}</button><b aria-live="polite">${cap(calMonth.toLocaleDateString('es-CO',{month:'long'}))} ${calMonth.getFullYear()}</b><button type="button" class="cal-nav" data-cal="1" aria-label="Mes siguiente"${calMonth>=maxM?' disabled':''}>${ic('chevR')}</button></div>
+      <div class="cal-grid">${cells}</div>
+      <div class="legend"><span><i style="background:var(--success-text);border-radius:50%;width:8px;height:8px"></i>Con cupos</span><span><i style="background:var(--primary)"></i>Elegido</span><span><s>13</s> Sin cupos</span></div>${errBox('date')}</div>
+    <div class="slots field" data-f="time" style="margin:0">${slots}${errBox('time')}
+      <div class="field" style="margin-top:18px"><label class="lab" for="vet">Veterinario <small>(opcional)</small></label><select class="input" id="vet" name="vet"><option value="">Cualquiera disponible</option>${Object.entries(VETS).filter(([,v])=>!v.noBook).map(([id,v])=>`<option value="${id}"${S.vet===id?' selected':''}>${v.n} · ${v.e}</option>`).join('')}</select></div>
+    </div>`;
+}
+function bindStep2(){ const p = document.getElementById('p2'); if (p) p.innerHTML = p2HTML(); }
+
+function step3(){
+  return `<div class="wrap book"><form class="book-main" id="f3" novalidate>
+    ${stepper(3)}
+    <h1 tabindex="-1" style="font-size:30px;margin-bottom:8px">Tus datos de contacto</h1>
+    <p style="color:var(--muted);margin-bottom:22px">No necesitas crear una cuenta. Solo los usamos para confirmar y recordarte la cita.</p>
+    <div class="form-alert" role="alert">${ic('alert')}<span></span></div>
+    <div class="field" data-f="name"><label class="lab" for="name">Nombre completo</label><input class="input" id="name" name="name" value="${esc(S.name)}" autocomplete="name" placeholder="Ej.: Valentina Ríos" aria-describedby="e-name">${errBox('name')}</div>
+    <div class="field" data-f="phone"><label class="lab" for="phone">Celular (WhatsApp)</label><div class="phone-wrap"><span class="pre" aria-hidden="true">+58</span><input class="input" id="phone" name="phone" value="${esc(S.phone)}" inputmode="numeric" autocomplete="tel-national" placeholder="412 123 4567" aria-describedby="h-phone e-phone"></div><span class="help" id="h-phone">${PHONE_HELP}</span><span class="okm">${ic('check')} Número válido</span>${errBox('phone')}</div>
+    <div class="field" data-f="email"><label class="lab" for="email">Correo electrónico</label><input class="input" id="email" name="email" type="email" value="${esc(S.email)}" autocomplete="email" placeholder="nombre@correo.com" aria-describedby="e-email"><span class="okm">${ic('check')} Correo válido</span>${errBox('email')}</div>
+    <div class="field"><label class="lab" for="notes">Motivo o síntomas <small>(opcional)</small></label><textarea class="input" id="notes" name="notes" placeholder="Ej.: primera vacuna, está un poco decaído…">${esc(S.notes)}</textarea></div>
+    <label class="check"><input type="checkbox" name="reminder"${S.reminder?' checked':''}><span class="box">${ic('check')}</span><span>Quiero recibir la confirmación y un recordatorio por WhatsApp</span></label>
+    <div class="field" data-f="consent" style="margin-bottom:8px"><label class="check"><input type="checkbox" name="consent"${S.consent?' checked':''} aria-describedby="e-consent"><span class="box">${ic('check')}</span><span>Acepto el <a href="#/privacidad" target="_blank">tratamiento de mis datos personales</a></span></label>${errBox('consent')}</div>
+    <div class="m-only" style="margin-top:18px"><div class="summary" style="position:static" id="summary-m">${summaryHTML().replace('<h2>Tu cita</h2>','<h2>Revisa tu cita</h2>')}</div></div>
+    <div class="actions" style="margin-top:22px"><a class="btn btn-secondary" href="#/agendar/2">${ic('arrowL')} Atrás</a><button class="btn btn-primary btn-lg" type="submit" id="confirm">${ic('check')} Confirmar cita</button></div>
+    <p class="autosave">${ic('save')} Tus datos están guardados</p>
+  </form>${summary()}</div>`;
+}
+
+/* ---------- Validación ---------- */
+const RULES = {
+  1: { service:()=>S.service?'':'Elige un servicio para continuar.',
+       petType:()=>S.petType?'':'Elige el tipo de mascota.',
+       petName:()=>S.petName.trim().length>=2?'':'Escribe el nombre de tu mascota.',
+       petAge:()=>/^\d{1,2}$/.test(S.petAge.trim()) && +S.petAge>0 ? '' : 'Escribe la edad en números, ej.: 2.' },
+  2: { date:()=>S.date?'':'Elige un día en el calendario.',
+       time:()=>!S.date?'':(S.time && !slotFull(S.date,S.time))?'':'Elige un horario disponible.' },
+  3: { name:()=>S.name.trim().split(/\s+/).filter(w=>w.length>1).length>=2?'':'Escribe tu nombre y apellido.',
+       phone:()=>phoneError(S.phone),
+       email:()=>/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(S.email.trim())?'':!S.email.includes('@')?'Falta la @, ej.: nombre@correo.com.':'Revisa el correo, ej.: nombre@correo.com.',
+       consent:()=>S.consent?'':'Debes aceptar el tratamiento de datos para agendar.' }
+};
+const validate = step => Object.entries(RULES[step]).map(([k,f])=>[k,f()]).filter(([,m])=>m);
+function setErr(k, msg){
+  const f = document.querySelector(`[data-f="${k}"]`); if (!f) return;
+  f.classList.toggle('has-err', !!msg);
+  const e = document.getElementById('e-'+k); if (e) e.querySelector('span').textContent = msg || '';
+  f.querySelectorAll('input,select,textarea').forEach(i=>i.setAttribute('aria-invalid', msg?'true':'false'));
+}
+function setOk(k, ok){ const f = document.querySelector(`[data-f="${k}"]`); if (f) f.classList.toggle('is-ok', ok); }
+function showErrors(step){
+  const errs = validate(step);
+  Object.keys(RULES[step]).forEach(k=>setErr(k,''));
+  errs.forEach(([k,m])=>setErr(k,m));
+  const fa = document.querySelector('.form-alert');
+  if (errs.length){
+    fa.querySelector('span').textContent = errs.length===1 ? 'Revisa el campo marcado para continuar.' : `Revisa los ${errs.length} campos marcados para continuar.`;
+    fa.classList.add('show');
+    const first = document.querySelector(`[data-f="${errs[0][0]}"]`);
+    first.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+    (first.querySelector('input:not([type=radio]),select,textarea') || first.querySelector('input,button:not([disabled])'))?.focus({preventScroll:true});
+  } else fa.classList.remove('show');
+  return errs.length === 0;
+}
+
+/* =========================================================
+   ACCIONES
+   ========================================================= */
+function dialog(html, cls=''){
+  const d = document.getElementById('dlg'); d.className = cls;
+  d.innerHTML = `<button class="dlg-x" data-action="close" aria-label="Cerrar">${ic('x')}</button><div class="dlg-in">${html}</div>`;
+  d.showModal(); return d;
+}
+function toast(msg){
+  const t = document.getElementById('toast'); t.innerHTML = `${ic('check')}<span>${msg}</span>`; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+const simulated = what => toast(`Prototipo: aquí se abriría ${what}.`);
+
+const ACTIONS = {
+  emergency(){ dialog(`<span class="dlg-ic red">${ic('alert')}</span><h2 id="dlg-t">Emergencia 24 horas</h2><p>No esperes una cita. Llámanos o escríbenos y te atendemos de inmediato; prepararemos la llegada de tu mascota.</p>
+    <div class="big-phone">${PHONE}</div>
+    <div class="dlg-acts"><button class="btn btn-danger btn-lg" data-action="call">${ic('phone')} Llamar ahora</button><button class="btn btn-wa btn-lg" data-action="whatsapp">${ic('chat')} Escribir por WhatsApp</button><button class="btn btn-ghost" data-action="close">Volver</button></div>`); },
+  call(){ document.getElementById('dlg').close(); simulated(`la llamada al ${PHONE}`); },
+  whatsapp(){ document.getElementById('dlg').close(); simulated('WhatsApp con la clínica'); },
+  maps(){ window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('Parque Principal'),'_blank','noopener'); },
+  waze(){ simulated('Waze con la ruta a la clínica'); },
+  'guide-pdf'(){ toast('Prototipo: se descargaría la «Guía del primerizo» (PDF).'); },
+  close(){ document.getElementById('dlg').close(); document.getElementById('drawer').close(); },
+  menu(){ const d = document.getElementById('drawer'); const cur = (location.hash.split('/')[1]||'inicio').split('?')[0];
+    d.innerHTML = `<button class="dlg-x" data-action="close" aria-label="Cerrar menú">${ic('x')}</button><div class="dlg-in" style="padding-top:70px"><nav aria-label="Menú">${NAV.map(([id,t])=>`<a href="#/${id}"${id===cur?' aria-current="page"':''}>${t}</a>`).join('')}</nav>
+      <a class="btn btn-primary btn-lg" href="#/agendar">${ic('cal')} Agendar cita</a><button class="btn btn-danger pulse" data-action="emergency">${ic('phone')} Emergencias 24 h</button><button class="btn btn-wa" data-action="whatsapp">${ic('chat')} WhatsApp</button>
+      <div class="theme-row"><span>Modo oscuro</span>${themeBtn('')}</div></div>`;
+    d.showModal(); },
+  theme(){ setTheme(isDark() ? 'light' : 'dark'); },
+  exit(){ dialog(`<span class="dlg-ic yel">${ic('save')}</span><h2>¿Salir de la reserva?</h2><p>Guardamos tu avance durante 24 horas. Cuando vuelvas, podrás continuar donde la dejaste.</p>
+    <div class="dlg-acts"><button class="btn btn-primary btn-lg" data-action="close">Seguir agendando</button><button class="btn btn-secondary" data-action="leave">Salir y guardar</button></div>`); },
+  leave(){ document.getElementById('dlg').close(); resumeDismissed = false; location.hash = '#/inicio'; },
+  discard(){ clearDraft(); toast('Reserva descartada.'); render(); },
+  ics(){ const b = store.get('pf-last'); if (!b) return;
+    const [y,m,d] = b.date.split('-'); const [h,mi] = b.time.split(':'); const st = `${y}${m}${d}T${h}${mi}00`; const e = new Date(+y,+m-1,+d,+h,+mi+30); const en = `${iso(e).replace(/-/g,'')}T${pad(e.getHours())}${pad(e.getMinutes())}00`;
+    const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Patitas Felices//Prototipo//ES','BEGIN:VEVENT',`UID:${b.code}@patitasfelices.co`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z`,`DTSTART:${st}`,`DTEND:${en}`,`SUMMARY:${SV[b.service].n} de ${b.petName} · Patitas Felices`,`LOCATION:${ADDRESS}`,`DESCRIPTION:Código ${b.code}. Te atiende ${VETS[b.vet].n}.`,'BEGIN:VALARM','TRIGGER:-PT24H','ACTION:DISPLAY','DESCRIPTION:Recordatorio de cita','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics],{type:'text/calendar'})); a.download = 'cita-patitas-felices.ics'; a.click(); toast('Descargando el evento para Apple Calendar.'); },
+  gcal(){ const b = store.get('pf-last'); if (!b) return;
+    const [y,m,d] = b.date.split('-'); const [h,mi] = b.time.split(':'); const e = new Date(+y,+m-1,+d,+h,+mi+30);
+    const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(`${SV[b.service].n} de ${b.petName} · Patitas Felices`)+`&dates=${y}${m}${d}T${h}${mi}00/${iso(e).replace(/-/g,'')}T${pad(e.getHours())}${pad(e.getMinutes())}00&ctz=America/Bogota&location=`+encodeURIComponent(ADDRESS)+'&details='+encodeURIComponent(`Código ${b.code}. Te atiende ${VETS[b.vet].n}.`);
+    window.open(url,'_blank','noopener'); },
+  share(){ const b = store.get('pf-last'); if (!b) return;
+    const msg = `🐾 Cita en Patitas Felices\n${SV[b.service].n} de ${b.petName}\n📅 ${fmtDate(b.date)} · ${fmtTime(b.time)}\n📍 ${ADDRESS} (frente al Parque Principal)\nCódigo: ${b.code}`;
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener'); },
+  reschedule(){ const b = store.get('pf-last'); if (!b) return; S = Object.assign(blank(), b, {time:null, step:2, startedAt:Date.now()}); save(); location.hash = '#/agendar/2'; toast('Elige la nueva fecha y hora. Tus datos se conservan.'); },
+  cancel(){ dialog(`<span class="dlg-ic red">${ic('x')}</span><h2>¿Cancelar la cita?</h2><p>Liberaremos el horario para otra mascota. Puedes volver a agendar cuando quieras.</p><div class="dlg-acts"><button class="btn btn-primary btn-lg" data-action="close">No, mantener la cita</button><button class="btn btn-danger" data-action="cancel-ok">Sí, cancelar la cita</button></div>`); },
+  'cancel-ok'(){ store.del('pf-last'); document.getElementById('dlg').close(); toast('Tu cita fue cancelada.'); location.hash = '#/inicio'; },
+  'pick-suggest'(el){ S.time = el.dataset.time; suggestions = []; save(); document.getElementById('dlg').close(); render(); toast(`Nuevo horario: ${fmtTime(S.time)}. Revisa y confirma.`); },
+  'go-step2'(){ document.getElementById('dlg').close(); location.hash = '#/agendar/2'; }
+};
+
+
+/* =========================================================
+   CONFIRMACIÓN
+   ========================================================= */
+P.confirmada = () => {
+  const b = store.get('pf-last'); if (!b) { location.hash = '#/inicio'; return P.inicio(); }
+  const s = SV[b.service], v = VETS[b.vet];
+  return {active:'', title:'Cita confirmada', html:`
+  <div class="wrap"><div class="conf">
+    <span class="conf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+    <h1 tabindex="-1">¡Cita confirmada!</h1>
+    <p class="lead">Te esperamos, ${esc(b.name.split(' ')[0])}. ${b.reminder?'Enviamos el resumen a tu WhatsApp y a tu correo, y te recordaremos 24 horas antes.':'Enviamos el resumen a tu correo.'}</p>
+    <div class="ticket"><div class="ticket-top"><b>${s.n} de ${esc(b.petName)}</b><span>Código ${b.code}</span></div><div class="rows">
+      <div class="sum-row">${ic('cal')}<div><b>Fecha y hora</b>${fmtDate(b.date)} · ${fmtTime(b.time)}</div></div>
+      <div class="sum-row">${ic('user')}<div><b>Te atiende</b>${v.n}</div></div>
+      <div class="sum-row">${ic('pin')}<div><b>Dirección</b>${ADDRESS}, frente al Parque Principal</div></div>
+      <div class="sum-row">${ic('tag')}<div><b>Precio referencial</b>${s.from?'Desde ':''}${money(s.p)} · pagas en la clínica</div></div>
+    </div></div>
+    <div class="conf-acts">
+      <button class="btn btn-primary" data-action="gcal">${ic('calplus')} Añadir a Google Calendar</button>
+      <button class="btn btn-secondary" data-action="ics">${ic('download')} Añadir a Apple Calendar</button>
+      <button class="btn btn-wa" data-action="share">${ic('share')} Compartir por WhatsApp</button>
+      <a class="btn btn-secondary" href="#/contacto">${ic('nav')} Cómo llegar</a>
+    </div>
+    <div class="tips box"><h2>Antes de tu cita</h2><ul class="checklist">
+      <li>${ic('check')}<span>Llega 10 minutos antes.</span></li><li>${ic('check')}<span>Trae el carné de vacunas si lo tienes.</span></li><li>${ic('check')}<span>${b.petType==='Perro'?`Trae a ${esc(b.petName)} con correa.`:`Transporta a ${esc(b.petName)} en su guacal.`}</span></li></ul></div>
+    <p style="margin-top:20px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" data-action="reschedule">Reprogramar</button><button class="btn btn-ghost" data-action="cancel">Cancelar cita</button></p>
+  </div></div>`};
+};
+P.privacidad = () => ({active:'', title:'Política de privacidad', html:`<div class="wrap" style="max-width:820px">${crumb([['Inicio','inicio'],['Privacidad']])}<h1 tabindex="-1">Tratamiento de datos</h1><p class="lead">Usamos tu nombre, celular y correo solo para confirmar y recordar tus citas. No compartimos tus datos con terceros y puedes pedir que los eliminemos cuando quieras escribiendo a hola@patitasfelices.co.</p></div>`});
+
+async function confirmBooking(btn){
+  if (!showErrors(3)) return;
+  const label = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Confirmando…';
+  await new Promise(r=>setTimeout(r,900));
+  /* Los «últimos cupos» son muy pedidos: la primera vez que se intenta confirmar uno, otra persona lo toma antes. */
+  const key = S.date+' '+S.time;
+  if (isLastSlot(S.date,S.time) && !contested.has(key)){
+    btn.disabled = false; btn.innerHTML = label;
+    contested.add(key); store.set('pf-contested',[...contested]);
+    taken.add(key); store.set('pf-taken',[...taken]);
+    const lost = S.time; S.time = null; save();
+    suggestions = SLOTS.manana.concat(SLOTS.tarde).filter(h=>!slotFull(S.date,h) && !isLastSlot(S.date,h)).sort((a,b)=>Math.abs(toMin(a)-toMin(lost))-Math.abs(toMin(b)-toMin(lost))).slice(0,3);
+    dialog(`<span class="dlg-ic yel">${ic('clock')}</span><h2>Ese horario se acaba de ocupar</h2><p>Otra persona reservó las ${fmtTime(lost)} hace un momento. Tus datos se conservan; elige otro horario:</p>
+      ${suggestions.length?`<div class="slot-grid">${suggestions.map(h=>`<button class="slot suggest" data-action="pick-suggest" data-time="${h}">${fmtTime(h).replace(/ [ap]\.m\./,'')}<small>${h<'12'?'a.m.':'p.m.'}</small></button>`).join('')}</div>`:'<p>No quedan cupos ese día.</p>'}
+      <div class="dlg-acts"><button class="btn btn-secondary" data-action="go-step2">${ic('cal')} Ver otros días y horarios</button></div>`);
+    refreshSummary(); return;
+  }
+  const elapsed = Math.round((Date.now()-(S.startedAt||Date.now()))/1000);
+  const b = Object.assign({}, S, {vet:vetFor(), code:'PF-'+(1000+hash(S.phone+S.date+S.time)%9000), elapsed});
+  store.set('pf-last', b); taken.add(S.date+' '+S.time); store.set('pf-taken',[...taken]);
+  clearDraft(); location.hash = '#/confirmada';
+}
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const esc = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Celular de Venezuela: indicativo fijo +58 y 10 dígitos que empiezan por 4 (412, 414, 416, 424, 426). */
+const PHONE_HELP = '10 dígitos, sin el +58. Aquí te llega la confirmación.';
+function fmtPhone(v){
+  const d = v.replace(/\D/g,'').slice(0,10);
+  return [d.slice(0,3),d.slice(3,6),d.slice(6)].filter(Boolean).join(' ');
+}
+function phoneError(v){
+  const d = v.replace(/\D/g,'');
+  if (d.length !== 10) return 'Ingresa 10 dígitos, ej.: 412 123 4567.';
+  if (d[0] !== '4') return 'El celular debe empezar por 4, ej.: 412 123 4567.';
+  return '';
+}
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-action]');
+  if (a) { if (a.tagName !== 'A') e.preventDefault(); ACTIONS[a.dataset.action]?.(a); if (a.tagName === 'A') document.getElementById('dlg').open && document.getElementById('dlg').close(); return; }
+  const g = e.target.closest('[data-go-step]'); if (g) { location.hash = '#/agendar/'+g.dataset.goStep; return; }
+  const day = e.target.closest('.day[data-date]'); if (day && !day.disabled) { S.date = day.dataset.date; if (S.time && slotFull(S.date,S.time)) S.time = null; suggestions = []; save(); bindStep2(); setErr('date',''); refreshSummary(); document.querySelector(`.day[data-date="${S.date}"]`)?.focus(); return; }
+  const slot = e.target.closest('#p2 .slot[data-time]'); if (slot && !slot.disabled) { S.time = slot.dataset.time; save(); document.querySelectorAll('#p2 .slot').forEach(s=>s.setAttribute('aria-pressed', s===slot)); setErr('time',''); refreshSummary(); return; }
+  const nav = e.target.closest('[data-cal]'); if (nav && !nav.disabled) { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+Number(nav.dataset.cal), 1); bindStep2(); return; }
+  if (e.target.closest('#drawer a')) document.getElementById('drawer').close();
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.name && !t.id) return;
+  if (t.id === 'phone' || t.id === 'cphone') t.value = fmtPhone(t.value);
+  if (t.form && ['f1','f2','f3'].includes(t.form.id)) {
+    const k = t.name; if (!(k in S)) return;
+    S[k] = t.type === 'checkbox' ? t.checked : t.value; save();
+    const step = +t.form.id[1]; if (RULES[step][k] && document.querySelector(`[data-f="${k}"]`)?.classList.contains('has-err')) setErr(k, RULES[step][k]());
+    if (k==='phone' || k==='email') setOk(k, !RULES[3][k]());
+    if (t.type==='radio' || t.type==='checkbox') setErr(k, '');
+    if (k==='vet') { /* sin cambios de layout */ }
+    refreshSummary();
+  }
+});
+document.addEventListener('change', e => { const t = e.target;
+  if (t.form && ['f1','f2','f3'].includes(t.form.id) && t.tagName==='SELECT') { S[t.name] = t.value; save(); refreshSummary(); } });
+document.addEventListener('focusout', e => {
+  const t = e.target; if (!t.form || !['f1','f3'].includes(t.form.id) || !t.value || t.type==='radio' || t.type==='checkbox') return;
+  const step = +t.form.id[1]; const r = RULES[step][t.name]; if (r) setErr(t.name, r());
+});
+document.addEventListener('submit', e => {
+  e.preventDefault(); const f = e.target;
+  if (f.id === 'f1' && showErrors(1)) location.hash = '#/agendar/2';
+  if (f.id === 'f2' && showErrors(2)) location.hash = '#/agendar/3';
+  if (f.id === 'f3') confirmBooking(document.getElementById('confirm'));
+  if (f.id === 'fcontact') {
+    const v = {cname:f.cname.value.trim()?'':'Escribe tu nombre.', cphone:phoneError(f.cphone.value), cmsg:f.cmsg.value.trim().length>4?'':'Cuéntanos en qué te ayudamos.'};
+    Object.entries(v).forEach(([k,m])=>setErr(k,m)); const bad = Object.entries(v).filter(([,m])=>m);
+    const fa = f.querySelector('.form-alert');
+    if (bad.length){ fa.querySelector('span').textContent = `Revisa ${bad.length===1?'el campo marcado':`los ${bad.length} campos marcados`}.`; fa.classList.add('show'); document.getElementById(bad[0][0]).focus(); }
+    else { fa.classList.remove('show'); f.reset(); toast('¡Mensaje enviado! Te respondemos por WhatsApp en menos de 1 hora.'); }
+  }
+});
+
+/* =========================================================
+   ENRUTADOR
+   ========================================================= */
+let lastRoute = '';
+function render(){
+  const raw = location.hash.replace(/^#\/?/,'') || 'inicio';
+  const [path, qs] = raw.split('?'); const q = Object.fromEntries(new URLSearchParams(qs||''));
+  const [r, arg] = path.split('/');
+  let page;
+  if (r === 'agendar') page = P.agendar(arg, q);
+  else if (r === 'servicio') page = P.servicio(arg);
+  else if (P[r] && r !== 'e404') page = P[r]();
+  else page = P.e404();
+  if (q.servicio || q.vet) { history.replaceState(null,'',`#/agendar/${S.step}`); }
+  document.getElementById('top').innerHTML = header(page.active);
+  const main = document.getElementById('main');
+  main.innerHTML = page.html; main.classList.remove('enter'); void main.offsetWidth; main.classList.add('enter');
+  document.getElementById('foot').innerHTML = page.active === 'booking' ? '' : footer();
+  document.title = `${page.title} · Patitas Felices`;
+  page.after?.();
+  document.body.classList.toggle('has-hero', r === 'inicio' || raw === 'inicio' ? !document.querySelector('.resume') && !!document.querySelector('.hero') : false);
+  const changed = path !== lastRoute; lastRoute = path;
+  if (changed) { window.scrollTo(0,0); main.querySelector('h1')?.focus({preventScroll:true}); }
+  onScroll();
+}
+window.addEventListener('hashchange', render);
+const onScroll = () => document.body.classList.toggle('scrolled', window.scrollY > 24);
+window.addEventListener('scroll', onScroll, {passive:true});
+render(); onScroll();
+</script>
+</body>
+</html>
