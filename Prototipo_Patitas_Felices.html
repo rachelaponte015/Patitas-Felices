@@ -448,7 +448,7 @@ dialog[open]{animation:dlg .25s ease-out}
 .dlg-acts{display:grid;gap:10px;margin-top:4px}
 .dlg-x{position:absolute;right:12px;top:12px;width:44px;height:44px;border-radius:12px;border:0;background:var(--bg);display:grid;place-items:center;cursor:pointer;color:var(--text)}
 .big-phone{font:700 30px var(--fh);color:var(--danger-text);text-align:center;padding:10px;background:var(--danger-soft);border-radius:14px}
-.drawer{margin:0 0 0 auto;height:100dvh;max-height:100dvh;border-radius:22px 0 0 22px;max-width:340px}
+.drawer{margin:0 0 0 auto;height:100dvh;max-height:100dvh;border-radius:22px 0 0 22px;max-width:min(340px,88vw)}
 .drawer[open]{animation:slideIn .25s ease-out}
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
 .drawer nav a{display:flex;align-items:center;min-height:56px;padding:0 14px;border-radius:12px;font:600 18px var(--fh);color:var(--text);text-decoration:none}
@@ -458,6 +458,34 @@ dialog[open]{animation:dlg .25s ease-out}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast .ico{color:var(--mint)}
 
+/* ---------- Móvil: nada puede ser más ancho que la pantalla ---------- */
+/* Teléfonos de menos de 390 px (360, 375…): encabezado compacto */
+@media (max-width:389px){
+  /* Los botones parten su texto en dos líneas antes que desbordar */
+  .btn{white-space:normal;text-align:center}
+  .wrap{padding:0 16px}
+  .hdr-in{gap:6px;min-height:64px}
+  .logo{gap:8px}
+  .logo-mark{width:40px;height:40px;border-radius:12px}
+  .logo-mark .paw{width:23px;height:23px}
+  .logo-txt b{font-size:16px}
+  .hdr-cta{padding:8px 12px;font-size:14.5px;min-height:44px}
+  .burger,.theme-btn{width:44px;height:44px}
+  .bk-exit{padding:0 6px}
+  .tbar{font-size:14.5px}
+  .tbar-call{padding:6px 12px}
+  .has-hero main{margin-top:-65px}
+  .has-hero .hero-in{padding-top:calc(36px + 65px)}
+  h1{font-size:29px}
+  .e404 .num{font-size:88px}
+  .e404 .num i{width:88px;height:88px}
+}
+/* Teléfonos muy angostos (320 px): se oculta lo que ya está en el hero y en el menú */
+@media (max-width:359px){
+  .hdr-cta{display:none}
+  .hdr .theme-btn{display:none}
+  .qa{grid-template-columns:1fr}
+}
 
 /* ---------- Escritorio ---------- */
 @media (min-width:900px){
